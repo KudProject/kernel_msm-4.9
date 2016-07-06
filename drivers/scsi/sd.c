@@ -782,7 +782,7 @@ static int sd_setup_discard_cmnd(struct scsi_cmnd *cmd)
 
 	rq->completion_data = page;
 	if (likely(!sdp->timeout_override))
-		rq->timeout = SD_TIMEOUT;
+		rq->timeout = SD_DISCARD_TIMEOUT;
 	else
 		rq->timeout = sdp->timeout_override;
 
