@@ -94,9 +94,6 @@ int sysctl_tcp_rfc1337 __read_mostly;
 int sysctl_tcp_max_orphans __read_mostly = NR_FILE;
 int sysctl_tcp_frto __read_mostly = 2;
 int sysctl_tcp_min_rtt_wlen __read_mostly = 300;
-
-int sysctl_tcp_thin_dupack __read_mostly;
-
 int sysctl_tcp_moderate_rcvbuf __read_mostly = 1;
 int sysctl_tcp_early_retrans __read_mostly = 3;
 int sysctl_tcp_invalid_ratelimit __read_mostly = HZ/2;
@@ -2195,6 +2192,7 @@ static bool tcp_time_to_recover(struct sock *sk, int flag)
 	if (tcp_dupack_heuristics(tp) > tp->reordering)
 		return true;
 
+<<<<<<< HEAD
 	/* Trick#4: It is still not OK... But will it be useful to delay
 	 * recovery more?
 	 */
@@ -2218,6 +2216,8 @@ static bool tcp_time_to_recover(struct sock *sk, int flag)
 	    tcp_is_sack(tp) && !tcp_send_head(sk))
 		return true;
 
+=======
+>>>>>>> 20e34d04bec1... UPSTREAM: tcp: remove thin_dupack feature
 	return false;
 }
 
