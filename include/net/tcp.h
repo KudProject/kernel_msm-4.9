@@ -588,7 +588,6 @@ void tcp_skb_collapse_tstamp(struct sk_buff *skb,
 			     const struct sk_buff *next_skb);
 
 /* tcp_input.c */
-void tcp_resume_early_retransmit(struct sock *sk);
 void tcp_rearm_rto(struct sock *sk);
 void tcp_synack_rtt_meas(struct sock *sk, struct request_sock *req);
 void tcp_reset(struct sock *sk);
@@ -1057,6 +1056,7 @@ static inline void tcp_enable_fack(struct tcp_sock *tp)
 	tp->rx_opt.sack_ok |= TCP_FACK_ENABLED;
 }
 
+<<<<<<< HEAD
 /* TCP early-retransmit (ER) is similar to but more conservative than
  * the thin-dupack feature.  Enable ER only if thin-dupack is disabled.
  */
@@ -1074,6 +1074,8 @@ static inline void tcp_disable_early_retrans(struct tcp_sock *tp)
 	tp->do_early_retrans = 0;
 }
 
+=======
+>>>>>>> c8d0cbaec408... UPSTREAM: tcp: remove early retransmit
 static inline unsigned int tcp_left_out(const struct tcp_sock *tp)
 {
 	return tp->sacked_out + tp->lost_out;

@@ -1781,7 +1781,11 @@ static void get_tcp6_sock(struct seq_file *seq, struct sock *sp, int i)
 	srcp  = ntohs(inet->inet_sport);
 
 	if (icsk->icsk_pending == ICSK_TIME_RETRANS ||
+<<<<<<< HEAD
 	    icsk->icsk_pending == ICSK_TIME_EARLY_RETRANS ||
+=======
+	    icsk->icsk_pending == ICSK_TIME_REO_TIMEOUT ||
+>>>>>>> c8d0cbaec408... UPSTREAM: tcp: remove early retransmit
 	    icsk->icsk_pending == ICSK_TIME_LOSS_PROBE) {
 		timer_active	= 1;
 		timer_expires	= icsk->icsk_timeout;
