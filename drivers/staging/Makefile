@@ -43,3 +43,4 @@ obj-$(CONFIG_KS7010)		+= ks7010/
 obj-$(CONFIG_GREYBUS)		+= greybus/
 obj-$(CONFIG_BCM2708_VCHIQ)	+= vc04_services/
 obj-$(CONFIG_PRONTO_WLAN)	+= prima/
+obj-$(CONFIG_QCA_CLD_WLAN)	+= qcacld-3.0/
