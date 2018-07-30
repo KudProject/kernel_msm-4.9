@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2020, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2021, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -856,7 +856,9 @@ static int kgsl_iommu_fault_handler(struct iommu_domain *domain,
 	 * search and delays the trace unnecessarily.
 	 */
 	trace_kgsl_mmu_pagefault(ctx->kgsldev, addr,
-			ptname, write ? "write" : "read");
+			ptname,
+			context != NULL ? context->proc_priv->comm : "unknown",
+			write ? "write" : "read");
 
 	if (test_bit(KGSL_FT_PAGEFAULT_LOG_ONE_PER_PAGE,
 		&adreno_dev->ft_pf_policy))
@@ -874,7 +876,9 @@ static int kgsl_iommu_fault_handler(struct iommu_domain *domain,
 			api_str = "UNKNOWN";
 
 		KGSL_MEM_CRIT(ctx->kgsldev,
-			"GPU PAGE FAULT: addr = %lX pid= %d\n", addr, ptname);
+			"GPU PAGE FAULT: addr = %lX pid= %d name=%s\n", addr,
+			ptname,
+			context != NULL ? context->proc_priv->comm : "unknown");
 		KGSL_MEM_CRIT(ctx->kgsldev,
 			"context=%s ctx_type=%s TTBR0=0x%llx CIDR=0x%x (%s %s fault)\n",
 			ctx->name, api_str, ptbase, contextidr,
