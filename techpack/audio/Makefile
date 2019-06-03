@@ -4,7 +4,7 @@ include $(srctree)/techpack/audio/config/sdm845auto.conf
 export
 endif
 ifeq ($(CONFIG_ARCH_SDM670), y)
-include $(srctree)/techpack/audio/config/sdm710auto_static.conf
+include $(srctree)/techpack/audio/config/sdm710auto.conf
 export
 endif
 ifeq ($(CONFIG_ARCH_SDXPOORWILLS), y)
