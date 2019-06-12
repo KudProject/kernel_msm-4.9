@@ -57,6 +57,14 @@ enum {
 	MI2S_MAX,
 };
 
+enum {
+	INT_SND_CARD,
+	INT_DIG_SND_CARD,
+	INT_MAX_SND_CARD = INT_DIG_SND_CARD,
+	EXT_SND_CARD_TASHA,
+	EXT_SND_CARD_TAVIL,
+};
+
 struct msm_asoc_mach_data {
 	int codec_type;
 	int ext_pa;
