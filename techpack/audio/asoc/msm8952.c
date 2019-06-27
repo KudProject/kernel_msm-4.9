@@ -36,6 +36,7 @@
 
 #define MSM_INT_DIGITAL_CODEC "msm-dig-codec"
 #define PMIC_INT_ANALOG_CODEC "analog-codec"
+#define EXT_SMART_PA "ext-smart-pa"
 
 enum btsco_rates {
 	RATE_8KHZ_ID,
@@ -2870,7 +2871,6 @@ static struct snd_soc_dai_link msm_aw8896_dig_be_dai_link[] = {
 		.stream_name = "Quaternary MI2S Playback",
 		.cpu_dai_name = "msm-dai-q6-mi2s.3",
 		.platform_name = "msm-pcm-routing",
-		.codec_name = "aw889x_smartpa.2-0034",
 		.codec_dai_name = "aw8896-aif",
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
 			SND_SOC_DAIFMT_CBS_CFS,
@@ -3089,6 +3089,18 @@ codec_dai:
 						"asoc-codec", index);
 				dai_link[i].codec_of_node = phandle;
 			}
+		}
+		if ((dai_link[i].id == MSM_BACKEND_DAI_QUATERNARY_MI2S_RX) &&
+			(of_property_read_bool(cdev->of_node,"ext_pa_aw8896"))){
+			index = of_property_match_string(
+					cdev->of_node,
+					"asoc-codec-names",
+					EXT_SMART_PA);
+
+			phandle = of_parse_phandle(
+					cdev->of_node,
+					"asoc-codec", index);
+			dai_link[i].codec_of_node = phandle;
 		}
 	}
 err:
