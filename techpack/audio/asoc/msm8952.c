@@ -2870,7 +2870,7 @@ static struct snd_soc_dai_link msm_aw8896_dig_be_dai_link[] = {
 		.stream_name = "Quaternary MI2S Playback",
 		.cpu_dai_name = "msm-dai-q6-mi2s.3",
 		.platform_name = "msm-pcm-routing",
-		.codec_name = "aw8896_smartpa",
+		.codec_name = "aw889x_smartpa.2-0034",
 		.codec_dai_name = "aw8896-aif",
 		.dai_fmt = SND_SOC_DAIFMT_I2S | SND_SOC_DAIFMT_NB_NF |
 			SND_SOC_DAIFMT_CBS_CFS,
