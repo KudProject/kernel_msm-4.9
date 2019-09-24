@@ -2973,11 +2973,16 @@ static int diag_process_apps_data_hdlc(unsigned char *buf, int len,
 	send.last = (void *)(buf + len - 1);
 	send.terminate = 1;
 
+wait_for_buffer:
 	retval = wait_event_interruptible(driver->hdlc_wait_q,
 			(data->flushed == 0));
 	if (retval)
 		return retval;
 	spin_lock_irqsave(&driver->diagmem_lock, flags);
+	if (data->flushed) {
+		spin_unlock_irqrestore(&driver->diagmem_lock, flags);
+		goto wait_for_buffer;
+	}
 	if (!data->buf) {
 		data->buf = diagmem_alloc(driver, DIAG_MAX_HDLC_BUF_SIZE +
 					APF_DIAG_PADDING,
@@ -3000,21 +3005,7 @@ static int diag_process_apps_data_hdlc(unsigned char *buf, int len,
 			ret = -EIO;
 			goto fail_free_buf;
 		}
-		retval = wait_event_interruptible(driver->hdlc_wait_q,
-			(data->flushed == 0));
-		if (retval)
-			return retval;
-		spin_lock_irqsave(&driver->diagmem_lock, flags);
-		data->buf = diagmem_alloc(driver, DIAG_MAX_HDLC_BUF_SIZE +
-					APF_DIAG_PADDING,
-					  POOL_TYPE_HDLC);
-		if (!data->buf) {
-			ret = PKT_DROP;
-			spin_unlock_irqrestore(&driver->diagmem_lock, flags);
-			goto fail_ret;
-		}
-		data->allocated = 1;
-		data->flushed = 0;
+		goto wait_for_buffer;
 	}
 
 	enc.dest = data->buf + data->len;
@@ -3036,11 +3027,16 @@ static int diag_process_apps_data_hdlc(unsigned char *buf, int len,
 			ret = -EIO;
 			goto fail_free_buf;
 		}
+wait_for_agg_buff:
 		retval = wait_event_interruptible(driver->hdlc_wait_q,
 			(data->flushed == 0));
 		if (retval)
 			return retval;
 		spin_lock_irqsave(&driver->diagmem_lock, flags);
+		if (data->flushed) {
+			spin_unlock_irqrestore(&driver->diagmem_lock, flags);
+			goto wait_for_agg_buff;
+		}
 		data->buf = diagmem_alloc(driver, DIAG_MAX_HDLC_BUF_SIZE +
 					APF_DIAG_PADDING,
 					 POOL_TYPE_HDLC);
@@ -3111,11 +3107,16 @@ static int diag_process_apps_data_non_hdlc(unsigned char *buf, int len,
 		       __func__, buf, len);
 		return -EIO;
 	}
+wait_for_buffer:
 	retval = wait_event_interruptible(driver->hdlc_wait_q,
 			(data->flushed == 0));
 	if (retval)
 		return retval;
 	spin_lock_irqsave(&driver->diagmem_lock, flags);
+	if (data->flushed) {
+		spin_unlock_irqrestore(&driver->diagmem_lock, flags);
+		goto wait_for_buffer;
+	}
 	if (!data->buf) {
 		data->buf = diagmem_alloc(driver, DIAG_MAX_HDLC_BUF_SIZE +
 					APF_DIAG_PADDING,
@@ -3137,21 +3138,7 @@ static int diag_process_apps_data_non_hdlc(unsigned char *buf, int len,
 			ret = -EIO;
 			goto fail_free_buf;
 		}
-		retval = wait_event_interruptible(driver->hdlc_wait_q,
-			(data->flushed == 0));
-		if (retval)
-			return retval;
-		spin_lock_irqsave(&driver->diagmem_lock, flags);
-		data->buf = diagmem_alloc(driver, DIAG_MAX_HDLC_BUF_SIZE +
-					APF_DIAG_PADDING,
-					  POOL_TYPE_HDLC);
-		if (!data->buf) {
-			ret = PKT_DROP;
-			spin_unlock_irqrestore(&driver->diagmem_lock, flags);
-			goto fail_ret;
-		}
-		data->allocated = 1;
-		data->flushed = 0;
+		goto wait_for_buffer;
 	}
 
 	header.start = CONTROL_CHAR;
