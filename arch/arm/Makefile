@@ -39,7 +39,7 @@ endif
 
 # This should work on most of the modern platforms
 KBUILD_DEFCONFIG := multi_v7_defconfig
-ifeq ($(COMPILER),clang)
+ifeq ($(cc-name),clang)
 KBUILD_CFLAGS += -Wa,-mno-warn-deprecated
 endif
 
