@@ -4680,7 +4680,7 @@ again:
 			pce_dev->intr_cadence = 0;
 			atomic_set(&pce_dev->bunch_cmd_seq, 0);
 			atomic_set(&pce_dev->last_intr_seq, 0);
-			pce_dev->cadence_flag = ~pce_dev->cadence_flag;
+			pce_dev->cadence_flag = !pce_dev->cadence_flag;
 		}
 	}
 
@@ -5980,13 +5980,6 @@ static int qce_smmu_init(struct qce_device *pce_dev)
 				DOMAIN_ATTR_ATOMIC, &attr);
 	if (ret < 0) {
 		pr_err("Set ATOMIC attr failed, err = %d\n", ret);
-		goto ext_fail_set_attr;
-	}
-
-	ret = iommu_domain_set_attr(mapping->domain,
-				DOMAIN_ATTR_UPSTREAM_IOVA_ALLOCATOR, &attr);
-	if (ret < 0) {
-		pr_err("Set UPSTREAM_IOVA_ALLOCATOR failed, err = %d\n", ret);
 		goto ext_fail_set_attr;
 	}
 
