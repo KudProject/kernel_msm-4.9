@@ -1048,6 +1048,9 @@ static void dwc3_core_exit_mode(struct dwc3 *dwc)
 	if (dwc->dr_mode == USB_DR_MODE_PERIPHERAL ||
 			dwc->dr_mode == USB_DR_MODE_OTG)
 		dwc3_gadget_exit(dwc);
+
+	/* de-assert DRVVBUS for HOST and OTG mode */
+	dwc3_set_mode(dwc, DWC3_GCTL_PRTCAP_DEVICE);
 }
 
 /* XHCI reset, resets other CORE registers as well, re-init those */
