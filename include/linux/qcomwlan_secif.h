@@ -14,6 +14,7 @@
 #define __QCOM_WLAN_SECIF_H__
 
 #include <crypto/hash.h>
+#include <crypto/skcipher.h>
 
 #define CMAC_TLEN 8 /* CMAC TLen = 64 bits (8 octets) */
 
@@ -28,11 +29,11 @@ extern int wcnss_wlan_crypto_ahash_digest(struct ahash_request *req);
 extern void wcnss_wlan_crypto_free_ahash(struct crypto_ahash *tfm);
 extern int wcnss_wlan_crypto_ahash_setkey(struct crypto_ahash *tfm,
 					const u8 *key, unsigned int keylen);
-extern struct crypto_ablkcipher *
-wcnss_wlan_crypto_alloc_ablkcipher(const char *alg_name, u32 type, u32 mask);
-extern void wcnss_wlan_ablkcipher_request_free(struct ablkcipher_request *req);
+extern struct crypto_skcipher *
+wcnss_wlan_crypto_alloc_skcipher(const char *alg_name, u32 type, u32 mask);
+extern void wcnss_wlan_skcipher_request_free(struct skcipher_request *req);
 extern void wcnss_wlan_crypto_free_cipher(struct crypto_cipher *tfm);
-extern void wcnss_wlan_crypto_free_ablkcipher(struct crypto_ablkcipher *tfm);
+extern void wcnss_wlan_crypto_free_skcipher(struct crypto_skcipher *tfm);
 extern struct crypto_cipher *
 wcnss_wlan_crypto_alloc_cipher(const char *alg_name, u32 type, u32 mask);
 extern void wcnss_wlan_cmac_calc_mic(struct crypto_cipher *tfm, u8 *m,
