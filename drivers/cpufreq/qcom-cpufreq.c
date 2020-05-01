@@ -447,7 +447,9 @@ static int msm_cpufreq_probe(struct platform_device *pdev)
 			return PTR_ERR(c);
 		else if (IS_ERR(c))
 			c = cpu_clk[cpu-1];
+#ifdef CONFIG_COMMON_CLK_MSM
 		c->flags |= CLKFLAG_NO_RATE_CACHE;
+#endif
 		cpu_clk[cpu] = c;
 	}
 	hotplug_ready = true;
