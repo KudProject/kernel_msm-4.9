@@ -1,4 +1,5 @@
-/* Copyright (c) 2015-2016, 2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2016, 2018, 2020, The Linux Foundation.
+ * All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -2347,6 +2348,24 @@ static struct snd_soc_dai_link msm8952_dai[] = {
 		.ignore_pmdown_time = 1,
 		.id = MSM_FRONTEND_DAI_MULTIMEDIA19,
 	},
+	{/* hw:x,41 */
+		.name = "MSM8x16 Haptic Audio",
+		.stream_name = "MultiMedia30",
+		.cpu_dai_name   = "MultiMedia30",
+		.platform_name  = "msm-pcm-dsp.1",
+		.dynamic = 1,
+		.dpcm_playback = 1,
+		.async_ops = ASYNC_DPCM_SND_SOC_PREPARE |
+			 ASYNC_DPCM_SND_SOC_HW_PARAMS,
+		.codec_dai_name = "snd-soc-dummy-dai",
+		.codec_name = "snd-soc-dummy",
+		.trigger = {SND_SOC_DPCM_TRIGGER_POST,
+			 SND_SOC_DPCM_TRIGGER_POST},
+		.ignore_suspend = 1,
+		/* this dainlink has playback support */
+		.ignore_pmdown_time = 1,
+		.id = MSM_FRONTEND_DAI_MULTIMEDIA30,
+	},
 	/* Backend I2S DAI Links */
 	{
 		.name = LPASS_BE_PRI_MI2S_RX,
@@ -2968,17 +2987,19 @@ static int msm8952_asoc_machine_probe(struct platform_device *pdev)
 	const char *ext_pa = "qcom,msm-ext-pa";
 	const char *mclk = "qcom,msm-mclk-freq";
 	const char *wsa = "asoc-wsa-codec-names";
-	const char *wsa_prefix = "asoc-wsa-codec-prefixes";
 	const char *type = NULL;
 	const char *ext_pa_str = NULL;
-	const char *wsa_str = NULL;
-	const char *wsa_prefix_str = NULL;
 	const char *spk_ext_pa = "qcom,msm-spk-ext-pa";
 	int num_strings;
 	int id, i, val;
 	int ret = 0;
 	struct resource *muxsel;
+#if IS_ENABLED(CONFIG_SND_SOC_WSA881X_ANALOG)
+	const char *wsa_prefix = "asoc-wsa-codec-prefixes";
+	const char *wsa_str = NULL;
+	const char *wsa_prefix_str = NULL;
 	char *temp_str = NULL;
+#endif
 
 	pdata = devm_kzalloc(&pdev->dev,
 				sizeof(struct msm_asoc_mach_data),
@@ -3060,6 +3081,7 @@ parse_mclk_freq:
 	/*reading the gpio configurations from dtsi file*/
 	num_strings = of_property_count_strings(pdev->dev.of_node,
 			wsa);
+#if IS_ENABLED(CONFIG_SND_SOC_WSA881X_ANALOG)
 	if (num_strings > 0) {
 		if (wsa881x_get_probing_count() < 2) {
 			ret = -EPROBE_DEFER;
@@ -3125,6 +3147,7 @@ parse_mclk_freq:
 			msm_anlg_cdc_update_int_spk_boost(false);
 		}
 	}
+#endif
 
 	card = msm8952_populate_sndcard_dailinks(&pdev->dev);
 	dev_dbg(&pdev->dev, "default codec configured\n");
