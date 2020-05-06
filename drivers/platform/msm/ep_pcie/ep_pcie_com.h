@@ -37,7 +37,7 @@
 #define PCIE20_PARF_MHI_BASE_ADDR_LOWER 0x178
 #define PCIE20_PARF_MHI_BASE_ADDR_UPPER 0x17c
 #define PCIE20_PARF_L1SUB_AHB_CLK_MAX_TIMER	0x180
-#define PCIE20_PARF_L1SUB_AHB_CLK_MAX_TIMER_RESET_MASK	0x8000000
+#define PCIE20_PARF_L1SUB_AHB_CLK_MAX_TIMER_RESET_MASK	0x80000000
 #define PCIE20_PARF_MSI_GEN             0x188
 #define PCIE20_PARF_DEBUG_INT_EN        0x190
 #define PCIE20_PARF_DEBUG_INT_EN_L1SUB_TIMEOUT_BIT_MASK	BIT(0)
@@ -186,6 +186,10 @@
 #define D3HOT_L1SS_WAIT_MAX_COUNT	      1000
 #define XMLH_LINK_UP                          0x400
 #define PARF_XMLH_LINK_UP                     0x40000000
+
+#define D3HOT_SLEEP_ENTRY_EXIT_MAX_COUNT		100
+#define D3HOT_SLEEP_ENTRY_EXIT_TIMEOUT_US_MIN	1000
+#define D3HOT_SLEEP_ENTRY_EXIT_TIMEOUT_US_MAX	1100
 
 #define MAX_PROP_SIZE 32
 #define MAX_MSG_LEN 80
@@ -421,6 +425,19 @@ struct ep_pcie_dev_t {
 	struct work_struct	     handle_perst_work;
 	struct work_struct           handle_bme_work;
 	struct work_struct           handle_d3cold_work;
+	atomic_t		     ep_pcie_dev_wake;
+	struct work_struct           handle_d3hot_sleep_work;
+	struct work_struct	     sched_inact_timer;
+	struct workqueue_struct	     *d3hot_sleep_wq;
+	int			     clk_ref_count;
+	spinlock_t		     d3hot_sleep_lock;
+	bool			     gdsc_disabled;
+	bool			     in_d3hot_sleep;
+	bool			     d3hot_sleep_in_progress;
+	bool			     clkreq_wake_in_progress;
+	bool			     ep_wake_in_progress;
+	bool			     inact_timer_enabled;
+	bool			     l1ss_sleep_mode_enabled;
 };
 
 extern struct ep_pcie_dev_t ep_pcie_dev;
