@@ -25,6 +25,18 @@
 	qcom,pmic-id = <0x0002001b 0x0 0x0 0x0>;
 };
 
+&modem_mem {
+	reg = <0x0 0x86800000 0x0 0x1F00000>;
+};
+
+&adsp_fw_mem {
+	reg = <0x0 0x88700000 0x0 0x1500000>;
+};
+
+&wcnss_fw_mem {
+	reg = <0x0 0x89c00000 0x0 0x700000>;
+};
+
 &mdss_dsi0 {
 	qcom,dsi-pref-prim-pan = <&dsi_auo_416p_amoled_cmd>;
 	/delete-property/ vdd-supply;
@@ -37,6 +49,36 @@
 
 &dsi_pm660_panel_pwr_supply {
 	/delete-node/ qcom,panel-supply-entry@0;
+};
+
+&i2c_4 {
+	status = "ok";
+	tsc@24 {
+		status = "disabled";
+	};
+
+	raydium_ts@39 {
+		compatible = "raydium,raydium-ts";
+		reg = <0x39>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <13 0x2008>;
+		vdd_ana-supply = <&pm660_l11>;
+		vcc_i2c-supply = <&pm660_l13>;
+		pinctrl-names = "pmx_ts_active","pmx_ts_suspend",
+					"pmx_ts_release";
+		pinctrl-0 = <&ts_int_active &ts_reset_active>;
+		pinctrl-1 = <&ts_int_suspend &ts_reset_suspend>;
+		pinctrl-2 = <&ts_release>;
+		raydium,reset-gpio = <&tlmm 64 0x00>;
+		raydium,irq-gpio = <&tlmm 65 0x00>;
+		raydium,num-max-touches = <2>;
+		raydium,soft-reset-delay-ms = <50>;
+		raydium,hard-reset-delay-ms = <100>;
+		raydium,x_max = <416>;
+		raydium,y_max = <416>;
+		raydium,display-coords= <0  0 416 416>;
+		raydium,fw_id = <0x2202>;
+	};
 };
 
 &usb_otg {
