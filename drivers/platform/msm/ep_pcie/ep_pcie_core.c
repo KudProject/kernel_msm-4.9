@@ -746,6 +746,17 @@ static void ep_pcie_core_init(struct ep_pcie_dev_t *dev, bool configured)
 		ep_pcie_write_mask(dev->dm_core + PCIE20_L1SUB_CAPABILITY, 0,
 			0x1f);
 
+		/*
+		 * CLK_PM_EN must be set to be able to enable clock power
+		 * management capability in the link capability register
+		 */
+		ep_pcie_write_mask(dev->elbi + PCIE20_ELBI_SYS_CTRL, 0,
+			PCIE20_ELBI_SYS_CTRL_CLK_PM_EN_BIT_MASK);
+
+		EP_PCIE_DBG(dev, "PCIe V%d: PCIE20_ELBI_SYS_CTRL: 0x%x\n",
+			dev->rev, readl_relaxed(dev->elbi +
+				PCIE20_ELBI_SYS_CTRL));
+
 		/* Enable Clock Power Management */
 		ep_pcie_write_reg_field(dev->dm_core, PCIE20_LINK_CAPABILITIES,
 			PCIE20_MASK_CLOCK_POWER_MAN, 0x1);
@@ -760,12 +771,13 @@ static void ep_pcie_core_init(struct ep_pcie_dev_t *dev, bool configured)
 			PCIE20_MASK_ACK_N_FTS, 0x80);
 
 		EP_PCIE_DBG(dev,
-			"After program: CLASS_CODE_REVISION_ID:0x%x; HDR_TYPE:0x%x; L1SUB_CAPABILITY:0x%x; PARF_SYS_CTRL:0x%x\n",
+			"After program: CLASS_CODE_REVISION_ID:0x%x; HDR_TYPE:0x%x; L1SUB_CAPABILITY:0x%x; PARF_SYS_CTRL:0x%x; LINK_CAP:0x%x\n",
 			readl_relaxed(dev->dm_core +
 				PCIE20_CLASS_CODE_REVISION_ID),
 			readl_relaxed(dev->dm_core + PCIE20_BIST_HDR_TYPE),
 			readl_relaxed(dev->dm_core + PCIE20_L1SUB_CAPABILITY),
-			readl_relaxed(dev->parf + PCIE20_PARF_SYS_CTRL));
+			readl_relaxed(dev->parf + PCIE20_PARF_SYS_CTRL),
+			readl_relaxed(dev->dm_core + PCIE20_LINK_CAPABILITIES));
 
 		/* Configure BARs */
 		ep_pcie_bar_init(dev);
@@ -1540,6 +1552,69 @@ disable_clkreq:
 }
 EXPORT_SYMBOL(ep_pcie_core_l1ss_sleep_config_enable);
 
+static void ep_pcie_core_enable_l1(struct ep_pcie_dev_t *dev)
+{
+	/*
+	 * Configure and enable L1(ss) here immediately after link up
+	 * check in HLOS during EP PCIE driver probe. The phy sequence
+	 * programmed in PBL is deemed good enough to support L1(ss) for
+	 * SDX24.
+	 * The below register writes to support L1(ss) are the same we
+	 * do when link is initialized by HLOS (as opposed to PBL now) -
+	 * writing them here before L1(ss) is enabled to be consistent.
+	 */
+
+	/* Enable CS for RO(CS) register writes */
+	ep_pcie_write_mask(dev->dm_core + PCIE20_MISC_CONTROL_1, 0,
+		BIT(0));
+	/* Set the Endpoint L0s Acceptable Latency to 1us (max) */
+	ep_pcie_write_reg_field(dev->dm_core,
+		PCIE20_DEVICE_CAPABILITIES,
+		PCIE20_MASK_EP_L0S_ACCPT_LATENCY, 0x7);
+
+	/* Set the Endpoint L1 Acceptable Latency to 2 us (max) */
+	ep_pcie_write_reg_field(dev->dm_core,
+		PCIE20_DEVICE_CAPABILITIES,
+		PCIE20_MASK_EP_L1_ACCPT_LATENCY, 0x7);
+
+	/* Set the L0s Exit Latency to 2us-4us = 0x6 */
+	ep_pcie_write_reg_field(dev->dm_core, PCIE20_LINK_CAPABILITIES,
+		PCIE20_MASK_L1_EXIT_LATENCY, 0x6);
+
+	/* Set the L1 Exit Latency to be 32us-64 us = 0x6 */
+	ep_pcie_write_reg_field(dev->dm_core, PCIE20_LINK_CAPABILITIES,
+		PCIE20_MASK_L0S_EXIT_LATENCY, 0x6);
+
+	/*
+	 * CLK_PM_EN must be set to be able to enable clock power
+	 * management capability in the link capability register
+	 */
+	ep_pcie_write_mask(dev->elbi + PCIE20_ELBI_SYS_CTRL, 0,
+		PCIE20_ELBI_SYS_CTRL_CLK_PM_EN_BIT_MASK);
+
+	EP_PCIE_DBG(dev, "PCIe V%d: PCIE20_ELBI_SYS_CTRL: 0x%x\n",
+		dev->rev, readl_relaxed(dev->elbi + PCIE20_ELBI_SYS_CTRL));
+
+	/* Enable Clock Power Management */
+	ep_pcie_write_reg_field(dev->dm_core, PCIE20_LINK_CAPABILITIES,
+		PCIE20_MASK_CLOCK_POWER_MAN, 0x1);
+
+	EP_PCIE_DBG(dev,
+		"After program: PCIE20_LINK_CAPABILITIES:0x%x\n",
+		readl_relaxed(dev->dm_core + PCIE20_LINK_CAPABILITIES));
+
+	/* Disable CS for RO(CS) register writes */
+	ep_pcie_write_mask(dev->dm_core + PCIE20_MISC_CONTROL_1, BIT(0),
+		0);
+
+	/* Enable L1 by clearing REQ_NOT_ENTR_L1 bit */
+	ep_pcie_write_mask(dev->parf + PCIE20_PARF_PM_CTRL,
+		PCIE20_PARF_PM_CTRL_REQ_NOT_ENTR_L1_BIT_MASK, 0);
+
+	EP_PCIE_DBG(dev, "PCIe V%d: PARF_PM_CTRL: 0x%x\n",
+		dev->rev, readl_relaxed(dev->parf + PCIE20_PARF_PM_CTRL));
+}
+
 int ep_pcie_core_enable_endpoint(enum ep_pcie_options opt)
 {
 	int ret = 0;
@@ -1624,6 +1699,7 @@ int ep_pcie_core_enable_endpoint(enum ep_pcie_options opt)
 				EP_PCIE_INFO(dev,
 					"PCIe V%d: link initialized by bootloader for LE PCIe endpoint; skip link training in HLOS.\n",
 					dev->rev);
+				ep_pcie_core_enable_l1(dev);
 				/*
 				 * Read and save the subsystem id set in PBL
 				 * (needed for restore during D3->D0)
@@ -2043,12 +2119,47 @@ static irqreturn_t ep_pcie_handle_pm_turnoff_irq(int irq, void *data)
 	EP_PCIE_DBG2(dev,
 		"PCIe V%d: No. %ld PM_TURNOFF is received.\n",
 		dev->rev, dev->pm_to_counter);
+	/*
+	 * The below write to exit from L1 was earlier done in D3 handler,
+	 * but that would prevent power saving on platforms that do not
+	 * support D3 cold.
+	 */
+	ep_pcie_write_mask(dev->parf + PCIE20_PARF_PM_CTRL, 0, BIT(1));
 	EP_PCIE_DBG2(dev, "PCIe V%d: Put the link into L23.\n",	dev->rev);
 	ep_pcie_write_mask(dev->parf + PCIE20_PARF_PM_CTRL, 0, BIT(2));
 
 	spin_unlock_irqrestore(&dev->isr_lock, irqsave_flags);
 
 	return IRQ_HANDLED;
+}
+
+static void ep_pcie_core_log_l1_debug_regs(struct ep_pcie_dev_t *dev)
+{
+	/* Log register values for debug purpose */
+	EP_PCIE_DBG(dev, "PCIe V%d: PCIE20_CAP_LINKCTRLSTATUS: 0x%x\n",
+		dev->rev,
+		readl_relaxed(dev->dm_core + PCIE20_CAP_LINKCTRLSTATUS));
+	EP_PCIE_DBG(dev, "PCIe V%d: PM_STTS: 0x%x PM_CTRL: 0x%x\n",
+		dev->rev,
+		readl_relaxed(dev->parf + PCIE20_PARF_PM_STTS),
+		readl_relaxed(dev->parf + PCIE20_PARF_PM_CTRL));
+	EP_PCIE_DBG(dev,
+		"PCIe V%d: L1SUB_CAPABILITY:0x%x; PHY_PCS_STATUS4:0x%x\n",
+		dev->rev,
+		readl_relaxed(dev->dm_core + PCIE20_L1SUB_CAPABILITY),
+		readl_relaxed(dev->phy + PCIE20_PHY_PCS_STATUS4));
+	EP_PCIE_DBG(dev,
+		"PCIe V%d: L2_CNT: 0x%x; L1SUB_CNT: 0x%x; L1_CNT: 0x%x; L0S: 0x%x;\n",
+		dev->rev,
+		readl_relaxed(dev->mmio + PCIE20_PARF_DBG_CNT_PM_LINKST_IN_L2),
+		readl_relaxed(dev->mmio +
+			PCIE20_PARF_DBG_CNT_PM_LINKST_IN_L1SUB),
+		readl_relaxed(dev->mmio + PCIE20_PARF_DBG_CNT_PM_LINKST_IN_L1),
+		readl_relaxed(dev->mmio +
+			PCIE20_PARF_DBG_CNT_PM_LINKST_IN_L0S));
+	EP_PCIE_DBG(dev, "PCIe V%d:  PCIE20_PARF_CLKREQ_OVERRIDE: 0x%x\n",
+		dev->rev,
+		readl_relaxed(dev->parf + PCIE20_PARF_CLKREQ_OVERRIDE));
 }
 
 static irqreturn_t ep_pcie_handle_dstate_change_irq(int irq, void *data)
@@ -2071,7 +2182,6 @@ static irqreturn_t ep_pcie_handle_dstate_change_irq(int irq, void *data)
 		EP_PCIE_DBG(dev,
 			"PCIe V%d: No. %ld change to D3 state.\n",
 			dev->rev, dev->d3_counter);
-		ep_pcie_write_mask(dev->parf + PCIE20_PARF_PM_CTRL, 0, BIT(1));
 
 		if (dev->enumerated)
 			ep_pcie_notify_event(dev, EP_PCIE_EVENT_PM_D3_HOT);
@@ -2079,6 +2189,7 @@ static irqreturn_t ep_pcie_handle_dstate_change_irq(int irq, void *data)
 			EP_PCIE_DBG(dev,
 				"PCIe V%d: do not notify client about this D3 hot event since enumeration by HLOS is not done yet.\n",
 				dev->rev);
+		ep_pcie_core_log_l1_debug_regs(dev);
 	} else if (dstate == 0) {
 		dev->l23_ready = false;
 		dev->d0_counter++;
@@ -2086,6 +2197,7 @@ static irqreturn_t ep_pcie_handle_dstate_change_irq(int irq, void *data)
 			"PCIe V%d: No. %ld change to D0 state.\n",
 			dev->rev, dev->d0_counter);
 		ep_pcie_notify_event(dev, EP_PCIE_EVENT_PM_D0);
+		ep_pcie_core_log_l1_debug_regs(dev);
 	} else {
 		EP_PCIE_ERR(dev,
 			"PCIe V%d:invalid D state change to 0x%x.\n",
