@@ -2162,6 +2162,45 @@ static void ep_pcie_core_log_l1_debug_regs(struct ep_pcie_dev_t *dev)
 		readl_relaxed(dev->parf + PCIE20_PARF_CLKREQ_OVERRIDE));
 }
 
+static void ep_pcie_update_phy_seq_in_l1ss(struct ep_pcie_dev_t *dev)
+{
+	u32 count = 0;
+	u32 val;
+
+	/*
+	 * Following sequence was provided by PHY design team to update the
+	 * phy sequence :
+	 * PBL -> Boot up (done) -> update PCS settings only -> go to L1ss
+	 * -> update all PHY settings -> come out of L1ss (this will happen
+	 * upon subsequent link activity)
+	 */
+
+	/* Update PCS phy registers */
+	ep_pcie_phy_update_pcs(dev);
+	/* Wait until link enters L1ss */
+	do {
+		val = readl_relaxed(dev->parf + PCIE20_PARF_PM_STTS);
+		if (val & PCIE20_PARF_PM_STTS_LINKST_IN_L1SUB)
+			break;
+		udelay(D3HOT_L1SS_WAIT);
+		count++;
+	} while (count < D3HOT_L1SS_WAIT_MAX_COUNT);
+
+	EP_PCIE_DBG(dev,
+		"PCIe V%d: PCIE20_PARF_PM_STTS: 0x%x; PCS_PCS_STATUS4: 0x%x\n",
+		dev->rev,
+		readl_relaxed(dev->parf + PCIE20_PARF_PM_STTS),
+		readl_relaxed(dev->phy + PCIE20_PHY_PCS_STATUS4));
+
+	if (count >= D3HOT_L1SS_WAIT_MAX_COUNT) {
+		EP_PCIE_DBG(dev, "PCIe V%d: Link did not enter L1ss\n",
+			dev->rev);
+		return;
+	}
+	/* Update full phy sequence */
+	ep_pcie_phy_init(dev);
+}
+
 static irqreturn_t ep_pcie_handle_dstate_change_irq(int irq, void *data)
 {
 	struct ep_pcie_dev_t *dev = data;
@@ -2182,6 +2221,15 @@ static irqreturn_t ep_pcie_handle_dstate_change_irq(int irq, void *data)
 		EP_PCIE_DBG(dev,
 			"PCIe V%d: No. %ld change to D3 state.\n",
 			dev->rev, dev->d3_counter);
+		/*
+		 * On some customer platforms the RC may not support
+		 * D3 cold. So we try to update the latest phy sequence
+		 * when we get the first D3 hot. We wait for the link to be
+		 * in L1ss to minimize the possibility of traffic on the link
+		 * while the phy sequence is updated.
+		 */
+		if (dev->d3_counter == 1)
+			ep_pcie_update_phy_seq_in_l1ss(dev);
 
 		if (dev->enumerated)
 			ep_pcie_notify_event(dev, EP_PCIE_EVENT_PM_D3_HOT);

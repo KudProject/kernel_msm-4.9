@@ -29,6 +29,7 @@
 #define PCIE20_PARF_PM_CTRL            0x20
 #define PCIE20_PARF_PM_CTRL_REQ_NOT_ENTR_L1_BIT_MASK	BIT(5)
 #define PCIE20_PARF_PM_STTS            0x24
+#define PCIE20_PARF_PM_STTS_LINKST_IN_L1SUB		BIT(8)
 #define PCIE20_PARF_PHY_CTRL           0x40
 #define PCIE20_PARF_PHY_REFCLK         0x4C
 #define PCIE20_PARF_CONFIG_BITS        0x50
@@ -160,6 +161,9 @@
 
 #define PCIE20_PHY_PCS_STATUS4		0x820
 
+#define PCIE20_PHY_PCS_START_OFFSET	0x600
+#define PCIE20_PHY_PCS_END_OFFSET	0xE60
+
 #define PCIE20_AUX_CLK_FREQ_REG        0xB40
 
 #define PERST_TIMEOUT_US_MIN	              1000
@@ -178,6 +182,8 @@
 #define PHY_READY_TIMEOUT_COUNT               30000
 #define MSI_EXIT_L1SS_WAIT	              10
 #define MSI_EXIT_L1SS_WAIT_MAX_COUNT          100
+#define D3HOT_L1SS_WAIT			      10
+#define D3HOT_L1SS_WAIT_MAX_COUNT	      1000
 #define XMLH_LINK_UP                          0x400
 #define PARF_XMLH_LINK_UP                     0x40000000
 
@@ -455,6 +461,7 @@ extern int ep_pcie_core_register_event(struct ep_pcie_register_event *reg);
 extern int ep_pcie_get_debug_mask(void);
 extern void ep_pcie_phy_init(struct ep_pcie_dev_t *dev);
 extern bool ep_pcie_phy_is_ready(struct ep_pcie_dev_t *dev);
+extern void ep_pcie_phy_update_pcs(struct ep_pcie_dev_t *dev);
 extern void ep_pcie_reg_dump(struct ep_pcie_dev_t *dev, u32 sel, bool linkdown);
 extern void ep_pcie_debugfs_init(struct ep_pcie_dev_t *ep_dev);
 extern void ep_pcie_debugfs_exit(void);
