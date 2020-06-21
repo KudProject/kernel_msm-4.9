@@ -1,0 +1,11 @@
+#
+# ILI9881H touchscreen driver configuration
+#
+config TOUCHSCREEN_ILI9881H
+	bool "ILI9881H"
+	default y
+	help
+	  Say Y here if you have a ILI9881H touchscreen connected
+	  to your system.
+
+	  If unsure, say N.

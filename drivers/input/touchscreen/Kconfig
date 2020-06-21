@@ -12,6 +12,10 @@ menuconfig INPUT_TOUCHSCREEN
 if INPUT_TOUCHSCREEN
 
 source "drivers/input/touchscreen/synaptics_dsx_2.6/Kconfig"
+# add for bring up NVT
+source "drivers/input/touchscreen/NVT_TP_Driver/Kconfig"
+# add for bring up ili9881h
+source "drivers/input/touchscreen/ipio_touch_driver-v1.0.3.5/Kconfig"
 
 config TOUCHSCREEN_PROPERTIES
 	def_tristate INPUT
