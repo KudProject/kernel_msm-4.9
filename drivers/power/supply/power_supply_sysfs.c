@@ -142,6 +142,9 @@ static ssize_t power_supply_show_property(struct device *dev,
 	else if (off >= POWER_SUPPLY_PROP_MODEL_NAME)
 		return scnprintf(buf, PAGE_SIZE, "%s\n",
 				value.strval);
+	else if (off >= POWER_SUPPLY_PROP_ASUS_CHRG_TYPE)
+		return scnprintf(buf, PAGE_SIZE, "%d\n",
+				value.intval);
 
 	if (off == POWER_SUPPLY_PROP_CHARGE_COUNTER_EXT)
 		return scnprintf(buf, PAGE_SIZE, "%lld\n",
@@ -321,6 +324,7 @@ static struct device_attribute power_supply_attrs[] = {
 	POWER_SUPPLY_ATTR(pd_voltage_min),
 	POWER_SUPPLY_ATTR(sdp_current_max),
 	POWER_SUPPLY_ATTR(connector_type),
+	POWER_SUPPLY_ATTR(charger_type),
 	POWER_SUPPLY_ATTR(parallel_batfet_mode),
 	POWER_SUPPLY_ATTR(parallel_fcc_max),
 	POWER_SUPPLY_ATTR(min_icl),

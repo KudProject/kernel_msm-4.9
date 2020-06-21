@@ -220,8 +220,32 @@ struct smb5 {
 	struct dentry		*dfs_root;
 	struct smb_dt_props	dt;
 };
+//huaqin add by tangqingyong at 20180730 for ZQL1830-199 start
+struct smb_charger *smbchg_dev;
+//huaqin add by tangqingyong at 20180730 for ZQL1830-199 end
+//huaqin added for ZQL1830-357 by tangqingyong adapter_id recognize at 20180808 start
+struct gpio_control *global_gpio;
+//huaqin added for ZQL1830-357 by tangqingyong adapter_id recognize at 20180808 end
+//huaqin add by tangqingyong at 20180813 for ZQL1830-364 asus_monitor start
+struct timespec last_jeita_time;
+struct wake_lock asus_chg_lock;
+extern void smblib_asus_monitor_start(struct smb_charger *chg, int time);
+extern bool asus_get_prop_usb_present(struct smb_charger *chg);
+extern void asus_smblib_stay_awake(struct smb_charger *chg);
+extern void asus_smblib_relax(struct smb_charger *chg);
+//huaqin add by tangqingyong at 20180813 for ZQL1830-364 asus_monitor end
 
-static int __debug_mask;
+//archermind added Demoapp Charge by pengfei at 20190215 start
+int demo_app_property_flag = 0;
+//archermind added Demoapp Charge by pengfei at 20190215 end
+
+//archermind added fast charge node by pengfei at 20190312 start
+extern int asus_charger_type;
+//archermind added fast charge node by pengfei at 20190312 end
+
+// Huaqin add for debug by tangqingyong at 2018/9/21 start
+static int __debug_mask = 0x4;
+// Huaqin add for debug by tangqingyong at 2018/9/21 end
 module_param_named(
 	debug_mask, __debug_mask, int, 0600
 );
@@ -235,6 +259,11 @@ static int __weak_chg_icl_ua = 500000;
 module_param_named(
 	weak_chg_icl_ua, __weak_chg_icl_ua, int, 0600
 );
+//huaqin added for ZQL1830-1602 country code by tangqingyong at 20181101 start
+int country_code = COUNTRY_OTHER;
+module_param(country_code, uint, 0644);
+MODULE_PARM_DESC(country_code, "country code");
+//huaqin added for ZQL1830-1602 country code by tangqingyong at 20181101 end
 
 enum {
 	USBIN_CURRENT,
@@ -627,6 +656,7 @@ static enum power_supply_property smb5_usb_props[] = {
 	POWER_SUPPLY_PROP_HVDCP_OPTI_ALLOWED,
 	POWER_SUPPLY_PROP_QC_OPTI_DISABLE,
 	POWER_SUPPLY_PROP_MOISTURE_DETECTED,
+	POWER_SUPPLY_PROP_ASUS_CHRG_TYPE,
 };
 
 static int smb5_usb_get_prop(struct power_supply *psy,
@@ -767,6 +797,9 @@ static int smb5_usb_get_prop(struct power_supply *psy,
 		break;
 	case POWER_SUPPLY_PROP_MOISTURE_DETECTED:
 		val->intval = chg->moisture_present;
+		break;
+	case POWER_SUPPLY_PROP_ASUS_CHRG_TYPE:
+		val->intval = asus_charger_type;
 		break;
 	default:
 		pr_err("get prop %d is not supported in usb\n", psp);
@@ -1261,6 +1294,9 @@ static enum power_supply_property smb5_batt_props[] = {
 	POWER_SUPPLY_PROP_CHARGE_COUNTER,
 	POWER_SUPPLY_PROP_CYCLE_COUNT,
 	POWER_SUPPLY_PROP_RECHARGE_SOC,
+	// Huaqin add for ZQL1830-1470 by wenyaqi at 20181023 start
+	POWER_SUPPLY_PROP_CHARGER_ID,
+	// Huaqin add for ZQL1830-1470 by wenyaqi at 20181023 end
 	POWER_SUPPLY_PROP_CHARGE_FULL,
 	POWER_SUPPLY_PROP_CHARGE_FULL_DESIGN,
 	POWER_SUPPLY_PROP_TIME_TO_FULL_NOW,
@@ -1434,6 +1470,11 @@ static int smb5_batt_get_prop(struct power_supply *psy,
 	case POWER_SUPPLY_PROP_FCC_STEPPER_ENABLE:
 		val->intval = chg->fcc_stepper_enable;
 		break;
+// Huaqin add for ZQL1830-1470 by wenyaqi at 20181023 start
+	case POWER_SUPPLY_PROP_CHARGER_ID:
+		rc = smblib_get_prop_charger_id(chg, val);
+		break;
+// Huaqin add for ZQL1830-1470 by wenyaqi at 20181023 end
 	default:
 		pr_err("batt power supply prop %d not supported\n", psp);
 		return -EINVAL;
@@ -1820,31 +1861,28 @@ static int smb5_configure_micro_usb(struct smb_charger *chg)
 static int smb5_configure_mitigation(struct smb_charger *chg)
 {
 	int rc;
-	u8 chan = 0, src_cfg = 0;
+	u8 chan = 0;
 
 	if (!chg->hw_die_temp_mitigation && !chg->hw_connector_mitigation)
 		return 0;
-
+//huaqin added by tangqingyong for qcom base version update caused can not charge properly issue(case03607654) at 20180810 start
 	if (chg->hw_die_temp_mitigation) {
-		chan = DIE_TEMP_CHANNEL_EN_BIT;
-		src_cfg = THERMREG_DIE_ADC_SRC_EN_BIT
-			| THERMREG_DIE_CMP_SRC_EN_BIT;
-	}
-
-	if (chg->hw_connector_mitigation) {
-		chan |= CONN_THM_CHANNEL_EN_BIT;
-		src_cfg |= THERMREG_CONNECTOR_ADC_SRC_EN_BIT;
-	}
-
-	rc = smblib_masked_write(chg, MISC_THERMREG_SRC_CFG_REG,
-			THERMREG_SW_ICL_ADJUST_BIT | THERMREG_DIE_ADC_SRC_EN_BIT
-			| THERMREG_DIE_CMP_SRC_EN_BIT
-			| THERMREG_CONNECTOR_ADC_SRC_EN_BIT, src_cfg);
-	if (rc < 0) {
-		dev_err(chg->dev,
+		rc = smblib_write(chg, MISC_THERMREG_SRC_CFG_REG,
+//				THERMREG_CONNECTOR_ADC_SRC_EN_BIT
+				 THERMREG_DIE_ADC_SRC_EN_BIT
+				| THERMREG_DIE_CMP_SRC_EN_BIT);
+//huaqin added by tangqingyong for qcom base version update caused can not charge properly issue(case03607654) at 20180810 end
+		if (rc < 0) {
+			dev_err(chg->dev,
 				"Couldn't configure THERM_SRC reg rc=%d\n", rc);
-		return rc;
-	};
+			return rc;
+		};
+
+		chan = DIE_TEMP_CHANNEL_EN_BIT;
+	}
+
+	if (chg->hw_connector_mitigation)
+		chan |= CONN_THM_CHANNEL_EN_BIT;
 
 	rc = smblib_masked_write(chg, BATIF_ADC_CHANNEL_EN_REG,
 			CONN_THM_CHANNEL_EN_BIT | DIE_TEMP_CHANNEL_EN_BIT,
@@ -2817,16 +2855,300 @@ static int smb5_show_charger_status(struct smb5 *chip)
 		batt_present, batt_health, batt_charge_type);
 	return rc;
 }
+//huaqin add by tangqingyong at 20180730 for ZQL1830-199 start
+#define ATD_CHG_LIMIT_SOC	70
+int charger_limit_enable_flag = 0;
+int charger_limit_value = 0;
+static char charger_limit[8] = "0";
+static struct proc_dir_entry *limit_enbale_entry = NULL;
+static struct proc_dir_entry *limit_entry = NULL;
+extern int asus_get_prop_batt_capacity(struct smb_charger *chg);
+#define CHARGER_LIMIT_EN_PROC_FILE     "driver/charger_limit_enable"
+#define CHARGER_LIMIT_PROC_FILE     "driver/charger_limit"
+
+ ssize_t charger_limit_enbale_read_proc(struct file *file, char __user *page, size_t size, loff_t *ppos)
+{
+	char read_data[8]={0};
+	int len = 0;
+	int rc;
+
+	if (*ppos)
+		return 0;
+
+	len = sprintf(read_data,"%d\n", charger_limit_enable_flag);
+	printk("%s , len = %d, data = %s\n", __func__, len, read_data);
+
+	rc = copy_to_user(page, read_data, len);
+	if (rc < 0)
+		return -EFAULT;
+
+	*ppos += len;
+
+	return len;
+}
+
+static ssize_t charger_limit_enbale_write_proc(struct file *file, const char __user *buff, size_t size, loff_t *ppos)
+{	char wtire_data[32] = {0};
+	int rc;
+	int soc;
+	bool do_it,online;
+	union power_supply_propval pval = {0, };
+	smblib_get_prop_usb_online(smbchg_dev, &pval);
+	online = pval.intval;
+
+	if (size >= 32)
+		return -EFAULT;
+	if (copy_from_user( &wtire_data, buff, size ))
+		return -EFAULT;
+
+	if (wtire_data[0] == '1'){
+		charger_limit_enable_flag = 1;
+		soc =asus_get_prop_batt_capacity(smbchg_dev);
+		do_it = charger_limit_value < soc;
+		if(do_it ){
+			rc = smblib_masked_write(smbchg_dev, CHARGING_ENABLE_CMD_REG, CHARGING_ENABLE_CMD_BIT, 0);
+			if(online)
+				power_supply_changed(smbchg_dev->batt_psy);
+		}
+		printk("%s,  write enbale 1 soc = %d, limit-value= %d! \n", __func__, soc, charger_limit_value);
+	}else{
+
+		charger_limit_enable_flag = 0;
+		rc = smblib_masked_write(smbchg_dev, CHARGING_ENABLE_CMD_REG, CHARGING_ENABLE_CMD_BIT, 1);
+		if(online)
+			power_supply_changed(smbchg_dev->batt_psy);
+		printk("%s, write enbale 0,no limit ,charging !!  \n", __func__);
+    }
+	printk("%s, ****************  charger_limit_enable_flag = %d\n", __func__, charger_limit_enable_flag);
+
+	return size;
+}
+
+static const struct file_operations charger_limit_enbale_proc_ops = {
+    .read = charger_limit_enbale_read_proc,
+    .write = charger_limit_enbale_write_proc,
+};
+
+ ssize_t charger_limit_read_proc(struct file *file, char __user *page, size_t size, loff_t *ppos)
+ {
+	char read_data[8]={0};
+	int len = 0;
+	int rc;
+
+	if (*ppos)
+		return 0;
+
+	len = sprintf(read_data,"%d\n", charger_limit_value);
+	printk(" %s , len = %d, data = %s\n", __func__, len, read_data);
+
+	rc = copy_to_user(page, read_data, len);
+	if (rc < 0)
+		return -EFAULT;
+
+	*ppos += len;
+
+	return len;
+ }
+
+static ssize_t charger_limit_write_proc(struct file *file, const char __user *buff, size_t size, loff_t *ppos)
+{
+	char wtire_data[8] = {0};
+	int soc;
+	bool do_it,online;
+	union power_supply_propval pval = {0, };
+	smblib_get_prop_usb_online(smbchg_dev, &pval);
+	online = pval.intval;
+
+	if (size >= 32)
+		return -EFAULT;
+
+	if (copy_from_user( &wtire_data, buff, size ))
+		return -EFAULT;
+	if (wtire_data[0] == '0'){
+		memset(charger_limit,0,8) ;
+	}else{
+		memcpy(charger_limit,wtire_data,8);
+	}
+
+	charger_limit_value = (int)simple_strtol(charger_limit,NULL,10);
+	soc =asus_get_prop_batt_capacity(smbchg_dev);
+
+	if (charger_limit_value > 100 || charger_limit_value < 0)
+		charger_limit_value = ATD_CHG_LIMIT_SOC;
+
+	charger_limit_enable_flag = !!charger_limit_value;
+	if (!charger_limit_enable_flag) {
+		smblib_masked_write(smbchg_dev, CHARGING_ENABLE_CMD_REG, CHARGING_ENABLE_CMD_BIT, 1);
+		if(online)
+			power_supply_changed(smbchg_dev->batt_psy);
+	} else  {
+		do_it = charger_limit_value < soc;
+		if(do_it){
+			smblib_masked_write(smbchg_dev, CHARGING_ENABLE_CMD_REG, CHARGING_ENABLE_CMD_BIT, 0);
+			if(online)
+				power_supply_changed(smbchg_dev->batt_psy);
+		}
+	}
+
+	printk(" %s, limit-value= %d, current-soc = %d\n", __func__, charger_limit_value, soc);
+	printk(" %s, limit-flag= %d\n", __func__, charger_limit_enable_flag);
+
+	return size;
+}
+
+static const struct file_operations charger_limit_proc_ops = {
+    .read = charger_limit_read_proc,
+    .write = charger_limit_write_proc,
+};
+
+
+static int init_proc_charger_limit(void)
+{
+	int ret =0 ;
+
+	limit_enbale_entry = proc_create(CHARGER_LIMIT_EN_PROC_FILE, 0666, NULL, &charger_limit_enbale_proc_ops);
+
+	if (limit_enbale_entry == NULL)
+	{
+		printk("create_proc entry %s failed\n", CHARGER_LIMIT_EN_PROC_FILE);
+		return -ENOMEM;
+	}
+	else
+	{
+		printk("create proc entry %s success", CHARGER_LIMIT_EN_PROC_FILE);
+		ret = 0;
+	}
+	limit_entry = proc_create(CHARGER_LIMIT_PROC_FILE, 0666, NULL, &charger_limit_proc_ops);
+
+	if (limit_entry == NULL)
+	{
+		printk("create_proc entry %s failed\n", CHARGER_LIMIT_PROC_FILE);
+		return -ENOMEM;
+	}
+	else
+	{
+		printk("create proc entry %s success", CHARGER_LIMIT_PROC_FILE);
+		ret = 0;
+	}
+	return ret;
+}
+
+
+static void remove_proc_charger_limit(void)
+{
+	proc_remove(limit_enbale_entry);
+	printk("remove_proc %s \n", CHARGER_LIMIT_EN_PROC_FILE);
+	proc_remove(limit_entry);
+	printk("remove_proc %s \n", CHARGER_LIMIT_EN_PROC_FILE);
+
+}
+//huaqin add by tangqingyong at 20180730 for ZQL1830-199 end
+//huaqin added for ZQL1830-357 by tangqingyong adapter_id recognize at 20180808 start
+int32_t get_ID_vadc_voltage(struct smb_charger *chg)
+{
+	struct qpnp_vadc_chip *vadc_dev;
+	struct qpnp_vadc_result adc_result;
+	int32_t adc;
+	vadc_dev = qpnp_get_vadc(chg->dev, "pm-gpio3");
+	if (IS_ERR(vadc_dev)) {
+		printk("%s: qpnp_get_vadc failed\n", __func__);
+		return -1;
+	}else{
+		qpnp_vadc_read(vadc_dev, VADC_AMUX2_GPIO, &adc_result);
+		adc = (int) adc_result.physical;
+		adc = adc / 1000;
+		printk("%s: adc=%d adc_result.physical=%lld adc_result.chan=0x%x\n", __func__, adc,adc_result.physical,adc_result.chan);
+	}
+	return adc;
+}
+//huaqin added for ZQL1830-357 by tangqingyong adapter_id recognize at 20180808 end
+
+//archermind added Demoapp Charge by pengfei at 20190215 start
+#define DEMO_APP_CONTROL     "driver/demo_app_control"
+static ssize_t demo_app_control_write_proc(struct file *file, const char __user *buff, size_t size, loff_t *ppos)
+{
+	char wtire_data[8] = {0};
+
+	if (size >= 32)
+		return -EFAULT;
+
+	if (copy_from_user( &wtire_data, buff, size ))
+		return -EFAULT;
+	if (wtire_data[0] == '0'){
+		demo_app_property_flag = 0;
+		CHG_DBG("%s: demo_app_control_flag = 0\n", __func__);
+	}else{
+		demo_app_property_flag = 1;
+		CHG_DBG("%s: demo_app_control_flag = 1\n", __func__);
+	}
+
+	return size;
+}
+
+ssize_t demo_app_control_read_proc(struct file *file, char __user *page, size_t size, loff_t *ppos)
+{
+	char read_data[8]={0};
+	int len = 0;
+	int rc;
+
+	if (*ppos)
+		return 0;
+
+	len = sprintf(read_data,"%d\n", demo_app_property_flag);
+	printk(" %s , len = %d, data = %s\n", __func__, len, read_data);
+	rc = copy_to_user(page, read_data, len);
+	if (rc < 0)
+		return -EFAULT;
+
+	*ppos += len;
+
+	return len;
+}
+
+static const struct file_operations demo_app_control_proc_ops = {
+    .read = demo_app_control_read_proc,
+    .write = demo_app_control_write_proc,
+};
+
+static struct proc_dir_entry *demo_app_control_entry = NULL;
+static int init_proc_demo_app_control(void)
+{
+	int ret =0 ;
+
+	demo_app_control_entry = proc_create(DEMO_APP_CONTROL, 0666, NULL, &demo_app_control_proc_ops);
+
+	if (demo_app_control_entry == NULL)
+	{
+		printk("create_proc entry %s failed\n", DEMO_APP_CONTROL);
+		return -ENOMEM;
+	}
+	else
+	{
+		printk("create proc entry %s success", DEMO_APP_CONTROL);
+		ret = 0;
+	}
+	return ret;
+}
+//archermind added Demoapp Charge by pengfei at 20190215 end
 
 static int smb5_probe(struct platform_device *pdev)
 {
 	struct smb5 *chip;
 	struct smb_charger *chg;
+//huaqin added for ZQL1830-357 by tangqingyong adapter_id recognize at 20180808 start
+	struct gpio_control *gpio_ctrl;
 	int rc = 0;
+//huaqin added for ZQL1830-357 by tangqingyong adapter_id recognize at 20180808 end
 
 	chip = devm_kzalloc(&pdev->dev, sizeof(*chip), GFP_KERNEL);
 	if (!chip)
 		return -ENOMEM;
+//huaqin added for ZQL1830-357 by tangqingyong adapter_id recognize at 20180808 start
+	gpio_ctrl = devm_kzalloc(&pdev->dev, sizeof(*gpio_ctrl), GFP_KERNEL);
+	printk("ADC_SW_EN=%d,ADC_CHG_GPIO=%d\n",gpio_ctrl->ADC_SW_EN,gpio_ctrl->ADC_CHG_GPIO);
+	if (!gpio_ctrl)
+		return -ENOMEM;
+//huaqin added for ZQL1830-357 by tangqingyong adapter_id recognize at 20180808 end
 
 	chg = &chip->chg;
 	chg->dev = &pdev->dev;
@@ -2838,7 +3160,44 @@ static int smb5_probe(struct platform_device *pdev)
 	chg->die_health = -EINVAL;
 	chg->otg_present = false;
 	mutex_init(&chg->vadc_lock);
+//huaqin add by tangqingyong at 20180813 for ZQL1830-364 asus_monitor start
+	wake_lock_init(&asus_chg_lock, WAKE_LOCK_SUSPEND, "asus_chg_lock");
+//huaqin add by tangqingyong at 20180812 for ZQL1830-364 asus_monitor end
+//huaqin add by tangqingyong at 20180730 for ZQL1830-199 start
+	smbchg_dev = chg;
+//huaqin add by tangqingyong at 20180730 for ZQL1830-199 end
+//huaqin added for ZQL1830-357 by tangqingyong adapter_id recognize at 20180808 start
+	global_gpio = gpio_ctrl;
+	gpio_ctrl->ADC_SW_EN = of_get_named_gpio(pdev->dev.of_node, "ADC-SW-EN-GPIO16", 0);
+	rc = gpio_request(gpio_ctrl->ADC_SW_EN, "ADC-SW-EN-GPIO16");
+	if (rc)
+		CHG_DBG_E("%s: failed to request ADC-SW-EN-GPIO16\n", __func__);
+	else
+		CHG_DBG("%s: Success to request ADC-SW-EN-GPIO16 %d\n", __func__,(int)gpio_ctrl->ADC_SW_EN);
 
+	if(!rc)
+	{
+		printk("smb2_probe pull down gpio\n");
+		gpio_direction_output(gpio_ctrl->ADC_SW_EN, 0);
+	}
+	rc = gpio_get_value(gpio_ctrl->ADC_SW_EN);
+	pr_info("ADC_SW_EN-GPIO16 init H/L %d\n",rc);
+
+	gpio_ctrl->ADC_CHG_GPIO = of_get_named_gpio(pdev->dev.of_node, "ADC-CHG-GPIO17", 0);
+	rc = gpio_request(gpio_ctrl->ADC_CHG_GPIO, "ADC-CHG-GPIO17");
+	if (rc)
+		CHG_DBG_E("%s: failed to request ADC-CHG-GPIO17\n", __func__);
+	else
+		CHG_DBG("%s: Success to request ADC-CHG-GPIO17 %d\n", __func__,(int)gpio_ctrl->ADC_CHG_GPIO);
+
+	if(!rc)
+	{
+		printk("smb2_probe pull down gpio\n");
+		gpio_direction_output(gpio_ctrl->ADC_CHG_GPIO, 0);
+	}
+	rc = gpio_get_value(gpio_ctrl->ADC_CHG_GPIO);
+	pr_info("ADC-CHG-GPIO17 init H/L %d\n",rc);
+//huaqin added for ZQL1830-357 by tangqingyong adapter_id recognize at 20180808 end
 	chg->regmap = dev_get_regmap(chg->dev->parent, NULL);
 	if (!chg->regmap) {
 		pr_err("parent regmap is missing\n");
@@ -2863,7 +3222,13 @@ static int smb5_probe(struct platform_device *pdev)
 		pr_err("Smblib_init failed rc=%d\n", rc);
 		return rc;
 	}
+//huaqin add by tangqingyong at 20180730 for ZQL1830-199 start
+	init_proc_charger_limit();
+//huaqin add by tangqingyong at 20180730 for ZQL1830-199 end
 
+//archermind added Demoapp Charge by pengfei at 20190215 start
+	init_proc_demo_app_control();
+//archermind added Demoapp Charge by pengfei at 20190215 end
 	/* set driver data before resources request it */
 	platform_set_drvdata(pdev, chip);
 
@@ -2953,7 +3318,6 @@ static int smb5_probe(struct platform_device *pdev)
 		pr_err("Failed in post init rc=%d\n", rc);
 		goto free_irq;
 	}
-
 	smb5_create_debugfs(chip);
 
 	rc = smb5_show_charger_status(chip);
@@ -2973,9 +3337,40 @@ free_irq:
 cleanup:
 	smblib_deinit(chg);
 	platform_set_drvdata(pdev, NULL);
+//huaqin add by tangqingyong at 20180730 for ZQL1830-199 start
+	remove_proc_charger_limit();
+//huaqin add by tangqingyong at 20180730 for ZQL1830-199 end
 
 	return rc;
 }
+//huaqin add by tangqingyong at 20180813 for ZQL1830-364 asus_monitor start
+#define JEITA_MINIMUM_INTERVAL (30)
+static int smb5_resume(struct device *dev)
+{
+	struct timespec mtNow;
+	int nextinterval;
+
+	if (!asus_get_prop_usb_present(smbchg_dev)) {
+		return 0;
+	}
+
+	asus_smblib_stay_awake(smbchg_dev);
+	mtNow = current_kernel_time();
+
+	/*BSP Austin_Tseng: if next time less than 30s, do
+			(next  time = last  time + 60s)*/
+	nextinterval = 60 - (mtNow.tv_sec - last_jeita_time.tv_sec);
+	printk("%s: nextJEITAinterval = %d\n", __func__, nextinterval);
+	if (nextinterval <= JEITA_MINIMUM_INTERVAL) {
+		smblib_asus_monitor_start(smbchg_dev, 0);
+		cancel_delayed_work(&smbchg_dev->asus_batt_RTC_work);
+	} else {
+		smblib_asus_monitor_start(smbchg_dev, nextinterval * 1000);
+		asus_smblib_relax(smbchg_dev);
+	}
+	return 0;
+}
+//huaqin add by tangqingyong at 20180813 for ZQL1830-364 asus_monitor end
 
 static int smb5_remove(struct platform_device *pdev)
 {
@@ -3014,6 +3409,11 @@ static void smb5_shutdown(struct platform_device *pdev)
 	smblib_masked_write(chg, USBIN_OPTIONS_1_CFG_REG,
 				BC1P2_SRC_DETECT_BIT, BC1P2_SRC_DETECT_BIT);
 }
+//huaqin add by tangqingyong at 20180813 for ZQL1830-364 asus_monitor start
+static const struct dev_pm_ops smb5_pm_ops = {
+	.resume		= smb5_resume,
+};
+//huaqin add by tangqingyong at 20180813 for ZQL1830-364 asus_monitor end
 
 static const struct of_device_id match_table[] = {
 	{ .compatible = "qcom,qpnp-smb5", },
@@ -3025,6 +3425,9 @@ static struct platform_driver smb5_driver = {
 		.name		= "qcom,qpnp-smb5",
 		.owner		= THIS_MODULE,
 		.of_match_table	= match_table,
+//huaqin add by tangqingyong at 20180813 for ZQL1830-364 asus_monitor start
+		.pm			= &smb5_pm_ops,
+//huaqin add by tangqingyong at 20180813 for ZQL1830-364 asus_monitor end
 	},
 	.probe		= smb5_probe,
 	.remove		= smb5_remove,

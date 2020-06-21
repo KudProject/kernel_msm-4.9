@@ -162,7 +162,20 @@ struct qpnp_qg {
 	/* charge counter */
 	struct cycle_counter	*counter;
 	/* ttf */
+
 	struct ttf		*ttf;
+//cmadd ASUS_BSP battery safety upgrade +++  cmadd
+	unsigned long condition1_battery_time;
+	unsigned long condition2_battery_time;
+	int condition1_cycle_count;
+	int condition2_cycle_count;
+	unsigned long condition1_temp_vol_time;
+	unsigned long condition2_temp_vol_time;
+	unsigned long condition1_temp_time;
+	unsigned long condition2_temp_time;
+	unsigned long condition1_vol_time;
+	unsigned long condition2_vol_time;
+//cmadd ASUS_BSP battery safety upgrade --- cmadd
 };
 
 struct ocv_all {

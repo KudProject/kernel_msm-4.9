@@ -9,7 +9,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-
+#define DEBUG
 #include <linux/alarmtimer.h>
 #include <linux/cdev.h>
 #include <linux/device.h>
@@ -313,23 +313,23 @@ int qg_get_battery_temp(struct qpnp_qg *chip, int *temp)
 {
 	int rc = 0;
 	struct qpnp_vadc_result result;
-
 	if (chip->battery_missing) {
 		*temp = 250;
 		return 0;
 	}
 
-	rc = qpnp_vadc_read(chip->vadc_dev, VADC_BAT_THERM_PU2, &result);
+//huaqin add by tangqingyong for ZQL1830-412 NTC batt-therm config start
+	rc = qpnp_vadc_read(chip->vadc_dev, VADC_BAT_THERM_PU1, &result);
 	if (rc) {
 		pr_err("Failed reading adc channel=%d, rc=%d\n",
-					VADC_BAT_THERM_PU2, rc);
+					VADC_BAT_THERM_PU1, rc);
 		return rc;
 	}
+//huaqin add by tangqingyong for ZQL1830-412 NTC batt-therm config end
 	pr_debug("batt_temp = %lld meas = 0x%llx\n",
 			result.physical, result.measurement);
 
 	*temp = (int)result.physical;
-
 	return rc;
 }
 
