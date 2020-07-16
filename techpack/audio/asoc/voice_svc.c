@@ -874,7 +874,7 @@ int __init voice_svc_init(void)
 	return platform_driver_register(&voice_svc_driver);
 }
 
-void __exit voice_svc_exit(void)
+void voice_svc_exit(void)
 {
 	pr_debug("%s\n", __func__);
 
