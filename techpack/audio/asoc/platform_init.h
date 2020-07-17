@@ -34,7 +34,7 @@ int msm_pcm_voip_init(void);
 int msm_transcode_loopback_init(void);
 int msm_cpe_lsm_init(void);
 #ifdef CONFIG_SND_SOC_MSM8909
-int __init voice_svc_init(void);
+int voice_svc_init(void);
 #endif
 
 void msm_cpe_lsm_exit(void);
@@ -57,7 +57,7 @@ void msm_dai_q6_hdmi_exit(void);
 void msm_fe_dai_exit(void);
 void msm_compress_dsp_exit(void);
 #ifdef CONFIG_SND_SOC_MSM8909
-void __exit voice_svc_exit(void);
+void voice_svc_exit(void);
 #endif
 
 #endif
