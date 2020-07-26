@@ -1704,7 +1704,9 @@ static int qpnp_batt_power_set_property(struct power_supply *psy,
 		return -EINVAL;
 	}
 
-	power_supply_changed(chip->batt_psy);
+	if (chip->bat_if_base && chip->batt_psy)
+		power_supply_changed(chip->batt_psy);
+
 	return rc;
 }
 
