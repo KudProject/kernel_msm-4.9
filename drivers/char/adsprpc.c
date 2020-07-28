@@ -1017,6 +1017,12 @@ static int fastrpc_buf_alloc(struct fastrpc_file *fl, size_t size,
 	struct fastrpc_buf *buf = NULL, *fr = NULL;
 	struct hlist_node *n;
 
+	VERIFY(err, fl->sctx != NULL);
+	if (err) {
+		err = -EBADR;
+		goto bail;
+	}
+
 	VERIFY(err, size > 0 && size < MAX_SIZE_LIMIT);
 	if (err) {
 		err = -EFAULT;
