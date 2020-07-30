@@ -1413,6 +1413,9 @@ static int a6xx_gmu_start(struct kgsl_device *device)
 
 	/* Bring GMU out of reset */
 	kgsl_gmu_regwrite(device, A6XX_GMU_CM3_SYSRESET, 0);
+	/* Make sure the request completes before continuing */
+	wmb();
+
 	if (timed_poll_check(device,
 			A6XX_GMU_CM3_FW_INIT_RESULT,
 			0xBABEFACE,
@@ -1881,6 +1884,13 @@ static int a6xx_gmu_fw_start(struct kgsl_device *device,
 
 	kgsl_gmu_regwrite(device, A6XX_GMU_AHB_FENCE_RANGE_0,
 			FENCE_RANGE_MASK);
+
+	/*
+	 * Make sure that CM3 state is at reset value. Snapshot is changing
+	 * NMI bit and if we boot up GMU with NMI bit set.GMU will boot straight
+	 * in to NMI handler without executing __main code
+	 */
+	kgsl_gmu_regwrite(device, A6XX_GMU_CM3_CFG, 0x4052);
 
 	/* Pass chipid to GMU FW, must happen before starting GMU */
 
