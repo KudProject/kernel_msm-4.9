@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2019, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2019, 2020, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -1221,6 +1221,11 @@ int read_platform_resources_from_dt(
 
 	res->never_unload_fw = of_property_read_bool(pdev->dev.of_node,
 			"qcom,never-unload-fw");
+
+	res->is_qos_type_all_cores  = of_property_read_bool(pdev->dev.of_node,
+					"qcom,qos-type-all-cores");
+	dprintk(VIDC_DBG, "QOS type all cores = %s\n",
+				res->is_qos_type_all_cores ? "yes" : "no");
 
 	of_property_read_u32(pdev->dev.of_node,
 			"qcom,pm-qos-latency-us", &res->pm_qos_latency_us);
