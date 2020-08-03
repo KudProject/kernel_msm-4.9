@@ -1397,6 +1397,8 @@
 		gdsc_emac-supply = <&gdsc_emac>;
 		mboxes = <&qmp_aop 0>;
 		mbox-names = "emac_aop";
+		ipa-dma-rx-desc-cnt = <256>;
+		ipa-dma-tx-desc-cnt = <256>;
 		io-macro-info {
 			io-macro-bypass-mode = <0>;
 			io-interface = "rgmii";
