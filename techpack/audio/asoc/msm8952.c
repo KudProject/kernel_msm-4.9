@@ -1706,6 +1706,8 @@ static int msm_dig_audrx_init(struct snd_soc_pcm_runtime *rtd)
 	struct snd_soc_dapm_context *dapm = snd_soc_codec_get_dapm(dig_cdc);
 	struct snd_card *card;
 
+	snd_soc_add_codec_controls(dig_cdc, msm_snd_controls,
+			ARRAY_SIZE(msm_snd_controls));
 	snd_soc_dapm_new_controls(dapm, msm8952_dig_dapm_widgets,
 			ARRAY_SIZE(msm8952_dig_dapm_widgets));
 
