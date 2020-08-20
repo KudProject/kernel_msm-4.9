@@ -43,3 +43,7 @@
 &usb {
 	qcom,gadget-imod-val = <250>;
 };
+
+&sdx_ext_ipc {
+	qcom,default-policy-nop;
+};
