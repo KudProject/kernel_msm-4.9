@@ -395,23 +395,22 @@ int is_spi_panel_continuous_splash_on(struct mdss_panel_data *pdata)
 static void enable_spi_panel_te_irq(struct spi_panel_data *ctrl_pdata,
 							bool enable)
 {
-	static bool is_enabled = true;
-
-	if (is_enabled == enable)
-		return;
+	static int te_irq_count;
 
 	if (!gpio_is_valid(ctrl_pdata->disp_te_gpio)) {
 		pr_err("%s:%d,SPI panel TE GPIO not configured\n",
 			   __func__, __LINE__);
 		return;
 	}
-
-	if (enable)
-		enable_irq(gpio_to_irq(ctrl_pdata->disp_te_gpio));
-	else
-		disable_irq(gpio_to_irq(ctrl_pdata->disp_te_gpio));
-
-	is_enabled = enable;
+	mutex_lock(&ctrl_pdata->te_mutex);
+	if (enable) {
+		if (++te_irq_count == 1)
+			enable_irq(gpio_to_irq(ctrl_pdata->disp_te_gpio));
+	} else {
+		if (--te_irq_count == 0)
+			disable_irq(gpio_to_irq(ctrl_pdata->disp_te_gpio));
+	}
+	mutex_unlock(&ctrl_pdata->te_mutex);
 }
 
 int mdss_spi_panel_kickoff(struct mdss_panel_data *pdata,
@@ -1667,6 +1666,7 @@ static int mdss_spi_panel_probe(struct platform_device *pdev)
 
 	init_completion(&ctrl_pdata->spi_panel_te);
 	mutex_init(&ctrl_pdata->spi_tx_mutex);
+	mutex_init(&ctrl_pdata->te_mutex);
 
 	rc = devm_request_irq(&pdev->dev,
 		gpio_to_irq(ctrl_pdata->disp_te_gpio),

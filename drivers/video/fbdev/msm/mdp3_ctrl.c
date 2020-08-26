@@ -303,6 +303,9 @@ void vsync_notify_handler(void *arg)
 {
 	struct mdp3_session_data *session = (struct mdp3_session_data *)arg;
 
+	if (!session)
+		return;
+
 	session->vsync_time = ktime_get();
 	MDSS_XLOG(ktime_to_ms(session->vsync_time));
 	sysfs_notify_dirent(session->vsync_event_sd);
