@@ -104,6 +104,7 @@ struct spi_panel_data {
 	int (*on)(struct mdss_panel_data *pdata);
 	int (*off)(struct mdss_panel_data *pdata);
 	struct mutex spi_tx_mutex;
+	struct mutex te_mutex;
 	struct pwm_device *pwm_bl;
 	int bklt_ctrl;	/* backlight ctrl */
 	bool pwm_pmi;
