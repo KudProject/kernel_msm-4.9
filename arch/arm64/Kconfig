@@ -564,6 +564,30 @@ config ARCH_MSM8953_SOC_SETTINGS
 
 	  If you are not sure what to do, select 'N' here.
 
+config MACH_TENOR
+	bool "Enable 10or device support"
+	default n
+	help
+	  This enables 10or device support
+
+config MACH_TENOR_E
+	bool "Enable 10or E device support"
+	default n
+	help
+	  This enables 10or E device support
+
+config MACH_TENOR_G
+	bool "Enable 10or G device support"
+	default n
+	help
+	  This enables 10or G device support
+
+config MACH_NONTREBLE_DTS
+	bool "Enable non-treble dts support"
+	default n
+	help
+	  This enables non-treble dts support
+
 choice
 	prompt "Virtual address space size"
 	default ARM64_VA_BITS_39 if ARM64_4K_PAGES
