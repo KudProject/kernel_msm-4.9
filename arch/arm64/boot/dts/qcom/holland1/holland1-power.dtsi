@@ -46,13 +46,15 @@
 
 		pmi8937_charger: qcom,qpnp-smbcharger {
 
+
 			qcom,float-voltage-mv-ntc = <4100>;
 			qcom,float-voltage-mv = <4400>;
 			qcom,float-voltage-comp = <15>;
 			qcom,fastchg-current-ma = <2000>;
 			qcom,fastchg-current-comp = <1200>;
 			qcom,skip-usb-suspend-for-fake-battery;
-			qcom,thermal-mitigation = <2000 2000 1200 1000>;
+			qcom,thermal-mitigation = <2100 1800 1500 1200 900 600 300 0>;
+			dpdm-supply = <&usb_otg>;
 
 			/delete-property/ qcom,parallel-usb-min-current-ma;
 			/delete-property/ qcom,parallel-usb-9v-min-current-ma;

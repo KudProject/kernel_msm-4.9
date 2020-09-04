@@ -188,7 +188,7 @@
 	};
 
 	usb_otg: usb@78db000 {
-
+		extcon = <&qpnp_smbcharger>;
 		qcom,hsusb-otg-mode = <3>;
 	};
 
