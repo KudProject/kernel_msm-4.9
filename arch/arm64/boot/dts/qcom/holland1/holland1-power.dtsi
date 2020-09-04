@@ -1,0 +1,173 @@
+/* Copyright (c) 2020, The Linux Foundation. All rights reserved.
+*  Copyright (c) 2020, Jebaitedneko.
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License version 2 and
+* only version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*/
+
+&spmi_bus {
+
+	qcom,pm8937@0 {
+
+		qcom,power-on@800 {
+
+			interrupts = <0x0 0x8 0x0>,
+					<0x0 0x8 0x1>,
+					<0x0 0x8 0x2>,
+					<0x0 0x8 0x4>,
+					<0x0 0x8 0x5>;
+			interrupt-names = "kpdpwr", "resin", "cblpwr", "resin-bark", "kpdpwr-resin-bark";
+
+			/delete-property/ qcom,store-hard-reset-reason;
+
+			qcom,pon_1 {
+
+				qcom,support-reset = <1>;
+				qcom,s1-timer = <6720>;
+				qcom,s2-timer = <1000>;
+				qcom,s2-type = <7>;
+			};
+
+			qcom,pon_3 {
+
+				qcom,pon-type = <0x02>;
+				qcom,pull-up = <0x01>;
+			};
+		};
+	};
+
+	qcom,pmi8937@2 {
+
+		pmi8937_charger: qcom,qpnp-smbcharger {
+
+			qcom,float-voltage-mv-ntc = <4100>;
+			qcom,float-voltage-mv = <4400>;
+			qcom,float-voltage-comp = <15>;
+			qcom,fastchg-current-ma = <2000>;
+			qcom,fastchg-current-comp = <1200>;
+			qcom,skip-usb-suspend-for-fake-battery;
+			qcom,thermal-mitigation = <2000 2000 1200 1000>;
+
+			/delete-property/ qcom,parallel-usb-min-current-ma;
+			/delete-property/ qcom,parallel-usb-9v-min-current-ma;
+			/delete-property/ qcom,parallel-allowed-lowering-ma;
+		};
+
+		pmi8937_fg: qcom,fg {
+
+			qcom,cold-bat-decidegc = <(-300)>;
+			qcom,cool-bat-decidegc = <(-200)>;
+			qcom,hot-bat-decidegc = <650>;
+			qcom,warm-bat-decidegc = <610>;
+			qcom,cold-hot-jeita-hysteresis = <10 10>;
+			qcom,fg-cutoff-voltage-mv = <3400>;
+			qcom,fg-use-vbat-low-empty-soc;
+			qcom,irq-volt-empty-mv = <3400>;
+			qcom,thermal-coefficients = [DA 86 F0 50 08 3C];
+		};
+	};
+
+	qcom,pmi8937@3 {
+
+		labibb: qpnp-labibb-regulator {
+
+		status = "ok";
+		compatible = "qcom,qpnp-labibb-regulator";
+		qcom,qpnp-labibb-mode = "lcd";
+		#address-cells = <1>;
+		#size-cells = <1>;
+		qcom,pmic-revid = <&pmi8937_revid>;
+
+			ibb_regulator: qcom,ibb@dc00 {
+
+				reg = <0xdc00 0x100>;
+				reg-names = "ibb_reg";
+				regulator-name = "ibb_reg";
+				regulator-min-microvolt = <4600000>;
+				regulator-max-microvolt = <6000000>;
+				qcom,qpnp-ibb-min-voltage = <1400000>;
+				qcom,qpnp-ibb-step-size = <100000>;
+				qcom,qpnp-ibb-slew-rate = <2000000>;
+				qcom,qpnp-ibb-use-default-voltage;
+				qcom,qpnp-ibb-init-voltage = <5500000>;
+				qcom,qpnp-ibb-init-amoled-voltage = <4000000>;
+				qcom,qpnp-ibb-init-lcd-voltage = <5500000>;
+				qcom,qpnp-ibb-soft-start = <1000>;
+				qcom,qpnp-ibb-discharge-resistor = <32>;
+				qcom,qpnp-ibb-lab-pwrup-delay = <8000>;
+				qcom,qpnp-ibb-lab-pwrdn-delay = <8000>;
+				qcom,qpnp-ibb-en-discharge;
+				qcom,qpnp-ibb-full-pull-down;
+				qcom,qpnp-ibb-pull-down-enable;
+				qcom,qpnp-ibb-switching-clock-frequency = <1480>;
+				qcom,qpnp-ibb-limit-maximum-current = <1550>;
+				qcom,qpnp-ibb-debounce-cycle = <16>;
+				qcom,qpnp-ibb-limit-max-current-enable;
+				qcom,qpnp-ibb-ps-enable;
+			};
+
+			lab_regulator: qcom,lab@de00 {
+
+				reg = <0xde00 0x100>;
+				reg-names = "lab";
+				regulator-name = "lab_reg";
+				regulator-min-microvolt = <4600000>;
+				regulator-max-microvolt = <6000000>;
+				qcom,qpnp-lab-min-voltage = <4600000>;
+				qcom,qpnp-lab-step-size = <100000>;
+				qcom,qpnp-lab-slew-rate = <5000>;
+				qcom,qpnp-lab-use-default-voltage;
+				qcom,qpnp-lab-init-voltage = <5500000>;
+				qcom,qpnp-lab-init-amoled-voltage = <4600000>;
+				qcom,qpnp-lab-init-lcd-voltage = <5500000>;
+				qcom,qpnp-lab-soft-start = <800>;
+				qcom,qpnp-lab-full-pull-down;
+				qcom,qpnp-lab-pull-down-enable;
+				qcom,qpnp-lab-switching-clock-frequency = <1600>;
+				qcom,qpnp-lab-limit-maximum-current = <800>;
+				qcom,qpnp-lab-limit-max-current-enable;
+				qcom,qpnp-lab-ps-threshold = <40>;
+				qcom,qpnp-lab-ps-enable;
+				qcom,qpnp-lab-nfet-size = <100>;
+				qcom,qpnp-lab-pfet-size = <100>;
+				qcom,qpnp-lab-max-precharge-time = <500>;
+			};
+		};
+
+		flash_led: qcom,leds@d300 {
+
+			pmi8937_flash1: qcom,flash_1 {
+
+				label = "flash";
+				qcom,led-name = "led:flash_1";
+				qcom,default-led-trigger = "flash1_trigger";
+				qcom,max-current = <1000>;
+				qcom,duration = <1280>;
+				qcom,id = <1>;
+				qcom,current = <625>;
+			};
+
+			pmi8937_torch1: qcom,torch_1 {
+
+				label = "torch";
+				qcom,led-name = "led:torch_1";
+				qcom,default-led-trigger = "torch1_trigger";
+				qcom,max-current = <200>;
+				qcom,id = <1>;
+				qcom,current = <120>;
+			};
+		};
+
+		pmi_haptic: qcom,haptics@c000 {
+
+			qcom,actuator-type = <1>;
+			qcom,min-timeout-ms = <0x64>;
+		};
+	};
+};

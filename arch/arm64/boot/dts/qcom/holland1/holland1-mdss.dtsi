@@ -1,0 +1,88 @@
+/* Copyright (c) 2020, The Linux Foundation. All rights reserved.
+*  Copyright (c) 2020, Jebaitedneko.
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License version 2 and
+* only version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*/
+
+#include "dsi-panel-hx8399c-auo-1080p-video.dtsi"
+#include "dsi-panel-ili7807d-djn-1080p-video.dtsi"
+#include "dsi-panel-ili7807d-djn-auo-37-1080p-video.dtsi"
+
+&dsi_panel_pwr_supply {
+
+	qcom,panel-supply-entry@2 {
+
+		reg = <2>;
+		qcom,supply-name = "lab";
+		qcom,supply-min-voltage = <4600000>;
+		qcom,supply-max-voltage = <6000000>;
+		qcom,supply-enable-load = <100000>;
+		qcom,supply-disable-load = <100>;
+	};
+
+	qcom,panel-supply-entry@3 {
+
+		reg = <3>;
+		qcom,supply-name = "ibb";
+		qcom,supply-min-voltage = <4600000>;
+		qcom,supply-max-voltage = <6000000>;
+		qcom,supply-enable-load = <100000>;
+		qcom,supply-disable-load = <100>;
+		qcom,supply-post-on-sleep = <20>;
+	};
+};
+
+&dsi_hx8399c_auo_1080p_video {
+
+	qcom,mdss-dsi-panel-name = "HX8399C_TXD_AUO";
+	qcom,mdss-pan-physical-width-dimension = <68>;
+	qcom,mdss-pan-physical-height-dimension = <121>;
+	qcom,esd-check-enabled;
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+};
+
+&dsi_ili7807d_djn_auo_37_1080p_video {
+
+	qcom,mdss-dsi-panel-name = "ILI7807d_DJIN_AUO";
+	qcom,mdss-pan-physical-width-dimension = <68>;
+	qcom,mdss-pan-physical-height-dimension = <121>;
+	qcom,esd-check-enabled;
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+};
+
+&dsi_ili7807d_djn_1080p_video {
+
+	qcom,mdss-dsi-panel-name = "ILI7807D_DJN_AUO";
+	qcom,mdss-pan-physical-width-dimension = <68>;
+	qcom,mdss-pan-physical-height-dimension = <121>;
+	qcom,esd-check-enabled;
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+};
+
+&mdss_dsi0 {
+
+	lab-supply = <&lab_regulator>;
+	ibb-supply = <&ibb_regulator>;
+
+	qcom,dsi-pref-prim-pan = <&dsi_hx8399c_auo_1080p_video>;
+};
+
+/delete-node/ &dsi_adv7533_1080p;
+/delete-node/ &dsi_hx8394f_720p_video;
+/delete-node/ &dsi_icn9706_720_1440_vid;
+/delete-node/ &dsi_r69006_1080p_cmd;
+/delete-node/ &dsi_r69006_1080p_video;
+/delete-node/ &dsi_sim_cmd;
+/delete-node/ &dsi_sim_vid;
+/delete-node/ &dsi_truly_1080_cmd;
+/delete-node/ &dsi_truly_1080_vid;
+/delete-node/ &dsi_truly_720_cmd;
+/delete-node/ &dsi_truly_720_vid;
+/delete-node/ &dsi_adv7533_720p;

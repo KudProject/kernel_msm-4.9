@@ -1,0 +1,88 @@
+/* Copyright (c) 2020, The Linux Foundation. All rights reserved.
+*  Copyright (c) 2020, Jebaitedneko.
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License version 2 and
+* only version 2 as published by the Free Software Foundation.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*/
+
+&soc {
+
+	tlmm: pinctrl@1000000 {
+
+		pmx_mdss: pmx_mdss {
+
+			mdss_dsi_active: mdss_dsi_active {
+
+				mux {
+
+					pins = "gpio60";
+				};
+
+				config {
+
+					pins = "gpio60";
+				};
+			};
+
+			mdss_dsi_suspend: mdss_dsi_suspend {
+
+				mux {
+
+					pins = "gpio60";
+				};
+
+				config {
+
+					pins = "gpio60";
+				};
+			};
+		};
+
+		/* add pingrp for touchscreen */
+
+		pmx_ts_int_active {
+
+			ts_int_active: ts_int_active {
+
+				config {
+
+					drive-strength = <8>;
+				};
+			};
+		};
+
+		cam_sensor_rear_default: cam_sensor_rear_default {
+			/* RESET, STANDBY */
+			mux {
+				pins = "gpio36";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio36";
+				bias-disable; /* No PULL */
+				drive-strength = <2>; /* 2 MA */
+			};
+		};
+
+		cam_sensor_rear_sleep: cam_sensor_rear_sleep {
+			/* RESET, STANDBY */
+			mux {
+				pins = "gpio36";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio36";
+				bias-disable; /* No PULL */
+				drive-strength = <2>; /* 2 MA */
+			};
+		};
+	};
+};
