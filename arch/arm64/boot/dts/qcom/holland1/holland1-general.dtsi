@@ -96,36 +96,59 @@
 			interrupts = <65 0x2008>;
 			vdd_ana-supply = <&pm8937_l10>;
 			vcc_i2c-supply = <&pm8937_l5>;
-			goodix,rst-gpio = <&tlmm 64 0x00>;
-			goodix,irq-gpio = <&tlmm 65 0x00>;
-			pinctrl-names = "pmx_ts_active",
-						"pmx_ts_suspend",
-						"pmx_ts_release";
-			pinctrl-0 = <&ts_int_active &ts_reset_active>;
-			pinctrl-1 = <&ts_int_suspend &ts_reset_suspend>;
-			pinctrl-2 = <&ts_release>;
-				goodix,cfg-group0 = [
-						45 38 04 80 07 0A 3C 80 02 C8 28
-						05 50 37 03 05 00 00 00 00 11 11
-						05 16 19 1E 14 87 27 CC 56 58 D3
-						07 00 00 02 D2 02 11 00 00 00 00
-						00 03 40 14 14 00 00 3C 64 8F D0
-						52 08 19 00 04 9F 3F 00 93 46 00
-						89 4D 00 89 55 00 78 5F 00 78 00
-						00 00 00 00 00 00 00 00 00 00 00
-						00 00 00 00 00 00 00 00 00 00 00
-						00 00 00 00 00 00 00 00 00 00 00
-						00 00 01 02 03 04 05 06 07 08 0B
-						0A 09 00 17 16 15 14 13 12 11 10
-						0F 0E 0D 0C FF FF FF FF FF FF 1E
-						1F 20 22 24 28 29 0A 08 06 05 04
-						02 00 FF FF FF 00 00 00 00 00 00
-						00 00 00 23 32 41 00 00 00 00 00
-						00 00 00 00 00 5A 00 00 00 00 00
-						00 00 00 28 5A 00 00 00 00 00 00
-						00 00 00 00 00 00 00 00 00 00 00
-						00 00 00 00 00 00 00 00 00 00 00
-						00 00 00 00 00 00 0C 01];
+			pinctrl-names = "gdix_ts_int_default", "gdix_ts_int_output_low",
+					"gdix_ts_int_output_high", "gdix_ts_int_input",
+					"gdix_ts_rst_default", "gdix_ts_rst_output_low",
+					"gdix_ts_rst_output_high", "gdix_ts_rst_input";
+			pinctrl-0 = <&ts_int_default>;
+			pinctrl-1 = <&ts_int_output_low>;
+			pinctrl-2 = <&ts_int_output_high>;
+			pinctrl-3 = <&ts_int_input>;
+			pinctrl-4 = <&ts_rst_default>;
+			pinctrl-5 = <&ts_rst_output_low>;
+			pinctrl-6 = <&ts_rst_output_high>;
+			pinctrl-7 = <&ts_rst_input>;
+			reset-gpios = <&tlmm 64 0x00>;
+			irq-gpios = <&tlmm 65 0x2008>;
+			irq-flags = <2>;
+			touchscreen-max-id = <10>;
+			touchscreen-size-x = <1080>;
+			touchscreen-size-y = <1920>;
+			touchscreen-max-w = <1024>;
+			touchscreen-max-p = <1024>;
+			goodix,type-a-report = <0>;
+			goodix,driver-send-cfg = <1>;
+			goodix,wakeup-with-reset = <0>;
+			goodix,resume-in-workqueue = <1>;
+			goodix,int-sync = <1>;
+			goodix,swap-x2y = <0>;
+			goodix,esd-protect = <1>;
+			goodix,pen-suppress-finger = <0>;
+			goodix,auto-update = <1>;
+			goodix,auto-update-cfg = <0>;
+			goodix,power-off-sleep = <0>;
+			goodix,cfg-group0 = [
+					45 38 04 80 07 0A 3C 80 02 C8 28
+					05 50 37 03 05 00 00 00 00 11 11
+					05 16 19 1E 14 87 27 CC 56 58 D3
+					07 00 00 02 D2 02 11 00 00 00 00
+					00 03 40 14 14 00 00 3C 64 8F D0
+					52 08 19 00 04 9F 3F 00 93 46 00
+					89 4D 00 89 55 00 78 5F 00 78 00
+					00 00 00 00 00 00 00 00 00 00 00
+					00 00 00 00 00 00 00 00 00 00 00
+					00 00 00 00 00 00 00 00 00 00 00
+					00 00 01 02 03 04 05 06 07 08 0B
+					0A 09 00 17 16 15 14 13 12 11 10
+					0F 0E 0D 0C FF FF FF FF FF FF 1E
+					1F 20 22 24 28 29 0A 08 06 05 04
+					02 00 FF FF FF 00 00 00 00 00 00
+					00 00 00 23 32 41 00 00 00 00 00
+					00 00 00 00 00 5A 00 00 00 00 00
+					00 00 00 28 5A 00 00 00 00 00 00
+					00 00 00 00 00 00 00 00 00 00 00
+					00 00 00 00 00 00 00 00 00 00 00
+					00 00 00 00 00 00 0C 01];
 		};
 	};
 
