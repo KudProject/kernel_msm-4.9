@@ -1,0 +1,6 @@
+config INPUT_FINGERPRINT
+	tristate "Fingerprint driver support"
+	help
+	  Say Y here to enable fingerprint driver support.
+
+source "drivers/input/fingerprint/gf3258/Kconfig"
