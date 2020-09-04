@@ -342,6 +342,9 @@ struct device_node *of_batterydata_get_best_profile(
 	 * Find the battery data with a battery id resistor closest to this one
 	 */
 	for_each_child_of_node(batterydata_container_node, node) {
+		#ifdef CONFIG_MACH_TENOR_E
+		batt_type = "2896330_huaqin_ql1520atl_4000mah_averaged_masterslave_may8th2017";
+		#endif
 		if (batt_type != NULL) {
 			rc = of_property_read_string(node, "qcom,battery-type",
 							&battery_type);
