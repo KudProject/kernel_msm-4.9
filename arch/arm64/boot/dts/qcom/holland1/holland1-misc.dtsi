@@ -23,7 +23,6 @@
 			compatible = "android,firmware";
 
 			fstab {
-
 				compatible = "android,fstab";
 
 				vendor {
@@ -51,31 +50,18 @@
 		};
 	};
 
-	reserved-memory {
-
-		other_ext_mem: other_ext_region@0 {
-
-			reg = <0x0 0x84A00000 0x0 0x1E00000>;
-		};
-
-		pstore_reserve_mem: pstore_reserve_mem_region@0 {
-
-			compatible = "removed-dma-pool";
-			no-map;
-			reg = <0x0 0x9ff00000 0x0 0x00300000>;
-		};
-	};
-
 	board_gpios: board_gpios@0 {
 
 		compatible = "pcb-gpio";
 		stage-gpio = <12 13 98 99>;
 	};
+};
 
-	qrd_batterydata: qcom,battery-data {
+&other_ext_mem {
+	reg = <0x0 0x84A00000 0x0 0x1E00000>;
+};
 
-		#include "batterydata_Amazon_4V4_4000mAh.dtsi"
-
-		/delete-node/ qcom,qrd_msm8937_sku2_2590mah;
-	};
+&qrd_batterydata {
+	#include "batterydata_Amazon_4V4_4000mAh.dtsi"
+	/delete-node/ qcom,qrd_msm8937_sku2_2590mah;
 };

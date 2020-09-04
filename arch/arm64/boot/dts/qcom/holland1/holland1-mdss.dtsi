@@ -75,8 +75,13 @@
 };
 
 /delete-node/ &dsi_adv7533_1080p;
+/delete-node/ &dsi_edo_rm67162_qvga_cmd;
 /delete-node/ &dsi_hx8394f_720p_video;
+/delete-node/ &dsi_hx8399c_hd_vid;
+/delete-node/ &dsi_hx8399c_truly_vid;
 /delete-node/ &dsi_icn9706_720_1440_vid;
+/delete-node/ &dsi_nt35695b_truly_fhd_cmd;
+/delete-node/ &dsi_nt35695b_truly_fhd_video;
 /delete-node/ &dsi_r69006_1080p_cmd;
 /delete-node/ &dsi_r69006_1080p_video;
 /delete-node/ &dsi_sim_cmd;
