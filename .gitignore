@@ -9,6 +9,10 @@
 #
 # Normal rules
 #
+modules/
+out/
+anykernel/anykernel3/
+anykernel/pronto_wlan/
 .*
 *.o
 *.o.*
@@ -18,7 +22,6 @@
 *.so
 *.so.dbg
 *.mod.c
-*.i
 *.lst
 *.symtypes
 *.order
