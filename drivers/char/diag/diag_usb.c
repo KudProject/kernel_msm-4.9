@@ -1,4 +1,4 @@
-/* Copyright (c) 2014-2016, 2018-2019 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2014-2016, 2018-2020 The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -30,6 +30,7 @@
 #include "diag_mux.h"
 #include "diagmem.h"
 #include "diag_ipc_logging.h"
+#include <soc/qcom/boot_stats.h>
 
 #define DIAG_USB_STRING_SZ	10
 #define DIAG_USB_MAX_SIZE	16384
@@ -365,6 +366,7 @@ static void diag_usb_notifier(void *priv, unsigned int event,
 		usb_info->max_size = usb_diag_request_size(usb_info->hdl);
 		atomic_set(&usb_info->connected, 1);
 		pr_info("diag: USB channel %s connected\n", usb_info->name);
+		place_marker("M - Diag port is enumerated");
 		queue_work(usb_info->usb_wq,
 			   &usb_info->connect_work);
 		break;
