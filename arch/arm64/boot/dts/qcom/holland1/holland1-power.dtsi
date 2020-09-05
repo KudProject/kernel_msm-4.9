@@ -144,8 +144,13 @@
 
 		pmi_haptic: qcom,haptics@c000 {
 
+			qcom,vmax-mv = <3400>;
 			qcom,actuator-type = <1>;
-			qcom,min-timeout-ms = <0x64>;
+			qcom,min-timeout-ms = <0xC8>;
+			qcom,use-play-irq;
+			qcom,use-sc-irq;
+
+			/delete-property/ qcom,en-brake;
 		};
 	};
 };
