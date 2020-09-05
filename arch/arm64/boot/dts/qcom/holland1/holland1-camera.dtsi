@@ -11,6 +11,61 @@
 * GNU General Public License for more details.
 */
 
+&soc {
+
+	led_flash0: qcom,camera-flash@0 {
+
+		cell-index = <0x0>;
+		compatible = "qcom,camera-flash";
+		qcom,flash-type = <1>;
+		qcom,flash-source = <&pmi8937_flash0>;
+		qcom,torch-source = <&pmi8937_torch0>;
+		qcom,switch-source = <&pmi8937_switch>;
+	};
+
+	led_flash1: qcom,camera-subflash {
+
+		cell-index = <0x01>;
+		compatible = "qcom,camera-subflash";
+		qcom,flash-type = <1>;
+		qcom,flash-source = <&pmi8937_flash1>;
+		qcom,torch-source = <&pmi8937_torch1>;
+		qcom,switch-source = <&pmi8937_switch>;
+	};
+
+	/delete-node/ qcom,camera-flash;
+};
+
+&spmi_bus {
+
+	qcom,pmi8937@3 {
+
+		flash_led: qcom,leds@d300 {
+
+			pmi8937_flash1: qcom,flash_1 {
+
+				label = "flash";
+				qcom,led-name = "led:flash_1";
+				qcom,default-led-trigger = "flash1_trigger";
+				qcom,max-current = <1000>;
+				qcom,duration = <1280>;
+				qcom,id = <1>;
+				qcom,current = <625>;
+			};
+
+			pmi8937_torch1: qcom,torch_1 {
+
+				label = "torch";
+				qcom,led-name = "led:torch_1";
+				qcom,default-led-trigger = "torch1_trigger";
+				qcom,max-current = <200>;
+				qcom,id = <1>;
+				qcom,current = <120>;
+			};
+		};
+	};
+};
+
 &cci {
 
 	qcom,camera@0 {
