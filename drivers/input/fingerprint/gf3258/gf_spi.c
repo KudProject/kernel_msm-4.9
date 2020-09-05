@@ -503,10 +503,16 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	case GF_IOC_ENABLE_POWER:
 		pr_debug("%s GF_IOC_ENABLE_POWER\n", __func__);
 			gf_power_on(gf_dev);
+		#ifdef CONFIG_MACH_TENOR_E
+		gf_dev->device_available = 1;
+		#endif
 		break;
 	case GF_IOC_DISABLE_POWER:
 		pr_debug("%s GF_IOC_DISABLE_POWER\n", __func__);
 			gf_power_off(gf_dev);
+		#ifdef CONFIG_MACH_TENOR_E
+		gf_dev->device_available = 0;
+		#endif
 		break;
 	case GF_IOC_ENTER_SLEEP_MODE:
 		pr_debug("%s GF_IOC_ENTER_SLEEP_MODE\n", __func__);
@@ -885,9 +891,43 @@ static struct platform_driver gf_driver = {
 	.remove = gf_remove,
 };
 
+#ifdef CONFIG_MACH_TENOR_E
+static struct of_device_id fp_id_match_table[] = {
+	{ .compatible = "fp_id,fp_id",},
+	{},
+};
+MODULE_DEVICE_TABLE(of, fp_id_match_table);
+#endif
+
 static int __init gf_init(void)
 {
 	int status;
+
+#ifdef CONFIG_MACH_TENOR_E
+	struct device_node *fp_id_np = NULL;
+	int fp_id_gpio = 0, fp_id_gpio_value = 0, fp_id_pwr = 0;
+	fp_id_np = of_find_matching_node(fp_id_np, fp_id_match_table);
+	if (fp_id_np) {
+		fp_id_gpio = of_get_named_gpio(fp_id_np, "silead,gpio_fp_id", 0);
+             fp_id_pwr = of_get_named_gpio(fp_id_np, "silead,gpio_pwr_id", 0);
+		printk("%s: fp_id_gpio=%d\n",__func__, fp_id_gpio);
+	}
+	if (fp_id_gpio < 0 || fp_id_pwr < 0) {
+		printk("of_get_gpio   fail\n");
+		return status;
+	}
+	gpio_direction_output(fp_id_pwr,1);
+	mdelay(5);
+	gpio_direction_input(fp_id_gpio);
+	fp_id_gpio_value = gpio_get_value(fp_id_gpio);
+	printk("%s: fp_id_gpio_value=%d\n",__func__, fp_id_gpio_value);
+	if(fp_id_gpio_value == 1){
+		printk("%s:  need to load goodix driver \n",__func__);
+	}
+	else{
+		return status;
+	}
+#endif
 
 	/* Claim our 256 reserved device numbers.  Then register a class
 	 * that will key udev/mdev to add/remove /dev nodes.  Last, register
