@@ -164,6 +164,15 @@
 		qcom,y-offset = <0>;
 	};
 
+	fp_id: fp_id {
+
+		status = "ok";
+		compatible = "fp_id,fp_id";
+		interrupt-parent = <&tlmm>;
+		silead,gpio_fp_id = <&tlmm 90 0x0>;
+		silead,gpio_pwr_id = <&tlmm 47 0x0>;
+	};
+
 	goodix_fp {
 
 		status = "ok";
