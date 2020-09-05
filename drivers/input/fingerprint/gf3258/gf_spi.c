@@ -344,11 +344,13 @@ static irqreturn_t gf_irq(int irq, void *handle)
 	struct gf_dev *gf_dev = &gf;
 	wake_lock_timeout(&fp_wakelock, msecs_to_jiffies(WAKELOCK_HOLD_TIME));
 	sendnlmsg(&msg);
+	#ifndef CONFIG_MACH_TENOR_E
 	if ((gf_dev->wait_finger_down == true) && (gf_dev->device_available == 1) && (gf_dev->fb_black == 1)) {
 		printk("%s:shedule_work\n",__func__);
 		gf_dev->wait_finger_down = false;
 		schedule_work(&gf_dev->work);
 	}
+	#endif
 #elif defined(GF_FASYNC)
 	struct gf_dev *gf_dev = &gf;
 
@@ -525,10 +527,17 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		break;
 	case GF_IOC_CHIP_INFO:
 		pr_debug("%s GF_IOC_CHIP_INFO\n", __func__);
+		#ifdef CONFIG_MACH_TENOR_E
+		if (copy_from_user(&info, (struct gf_ioc_chip_info *)arg, sizeof(struct gf_ioc_chip_info))) {
+			retval = -EFAULT;
+			break;
+		}
+		#else
 		if (copy_from_user(&info, (void __user *)arg, sizeof(struct gf_ioc_chip_info))) {
 			retval = -EFAULT;
 			break;
 		}
+		#endif
 		pr_info("vendor_id : 0x%x\n", info.vendor_id);
 		pr_info("mode : 0x%x\n", info.mode);
 		pr_info("operation: 0x%x\n", info.operation);
@@ -550,7 +559,11 @@ static long gf_compat_ioctl(struct file *filp, unsigned int cmd, unsigned long a
 
 static int gf_open(struct inode *inode, struct file *filp)
 {
+	#ifdef CONFIG_MACH_TENOR_E
+	struct gf_dev *gf_dev;
+	#else
 	struct gf_dev *gf_dev = &gf;
+	#endif
 	int status = -ENXIO;
 
 	mutex_lock(&device_list_lock);
@@ -571,6 +584,9 @@ static int gf_open(struct inode *inode, struct file *filp)
 			pr_info("Succeed to open device. irq = %d\n",
 					gf_dev->irq);
 			if (gf_dev->users == 1) {
+			#ifdef CONFIG_MACH_TENOR_E
+				gf_enable_irq(gf_dev);
+			#else
 				status = gf_parse_dts(gf_dev);
 				if (status)
 					goto err_parse_dt;
@@ -578,6 +594,7 @@ static int gf_open(struct inode *inode, struct file *filp)
 				status = irq_setup(gf_dev);
 				if (status)
 					goto err_irq;
+			#endif
 			}
 			gf_hw_reset(gf_dev, 3);
 			gf_dev->device_available = 1;
@@ -633,9 +650,12 @@ static int gf_release(struct inode *inode, struct file *filp)
 	if (!gf_dev->users) {
 
 		pr_info("disble_irq. irq = %d\n", gf_dev->irq);
-
+		#ifndef CONFIG_MACH_TENOR_E
 		irq_cleanup(gf_dev);
 		gf_cleanup(gf_dev);
+		#else
+		gf_disable_irq(gf_dev);
+		#endif
 		/*power off the sensor*/
 		gf_dev->device_available = 0;
 		gf_power_off(gf_dev);
@@ -687,7 +707,9 @@ static int goodix_fb_state_chg_callback(struct notifier_block *nb,
 		case FB_BLANK_POWERDOWN:
 			if (gf_dev->device_available == 1) {
 				gf_dev->fb_black = 1;
+				#ifndef CONFIG_MACH_TENOR_E
 				gf_dev->wait_finger_down = true;
+				#endif
 #if defined(GF_NETLINK_ENABLE)
 				msg = GF_NET_EVENT_FB_BLACK;
 				sendnlmsg(&msg);
@@ -745,7 +767,14 @@ static int gf_probe(struct platform_device *pdev)
 	gf_dev->pwr_gpio = -EINVAL;
 	gf_dev->device_available = 0;
 	gf_dev->fb_black = 0;
+	#ifndef CONFIG_MACH_TENOR_E
 	gf_dev->wait_finger_down = false;
+	#else
+	printk("hzh:probe start\n");
+	if (gf_parse_dts(gf_dev))
+		goto error_hw;
+	printk("hzh:dts ok\n");
+	#endif
 	/* If we can allocate a minor number, hook up this device.
 	 * Reusing minors is fine so long as udev or mdev is working.
 	 */
@@ -770,11 +799,14 @@ static int gf_probe(struct platform_device *pdev)
 		list_add(&gf_dev->device_entry, &device_list);
 	} else {
 		gf_dev->devt = 0;
+		#ifndef CONFIG_MACH_TENOR_E
 		goto error_hw;
+		#endif
 	}
 	mutex_unlock(&device_list_lock);
 
-  
+#ifdef CONFIG_MACH_TENOR_E
+	if (status == 0) {
 		/*input device subsystem */
 		gf_dev->input = input_allocate_device();
 		if (gf_dev->input == NULL) {
@@ -791,6 +823,25 @@ static int gf_probe(struct platform_device *pdev)
 			pr_err("failed to register input device\n");
 			goto error_input;
 		}
+	}
+#else
+		/*input device subsystem */
+		gf_dev->input = input_allocate_device();
+		if (gf_dev->input == NULL) {
+			pr_err("%s, failed to allocate input device\n", __func__);
+			status = -ENOMEM;
+			goto error_dev;
+		}
+		for (i = 0; i < ARRAY_SIZE(maps); i++)
+			input_set_capability(gf_dev->input, maps[i].type, maps[i].code);
+
+		gf_dev->input->name = GF_INPUT_NAME;
+		status = input_register_device(gf_dev->input);
+		if (status) {
+			pr_err("failed to register input device\n");
+			goto error_input;
+		}
+#endif
 
 #ifdef AP_CONTROL_CLK
 	pr_info("Get the clk resource.\n");
@@ -806,9 +857,20 @@ static int gf_probe(struct platform_device *pdev)
 
 	gf_dev->notifier = goodix_noti_block;
 	fb_register_client(&gf_dev->notifier);
-
+	#ifdef CONFIG_MACH_TENOR_E
+	gf_dev->irq = gf_irq_num(gf_dev);
+	#endif
 
 	wake_lock_init(&fp_wakelock, WAKE_LOCK_SUSPEND, "fp_wakelock");
+	#ifdef CONFIG_MACH_TENOR_E
+	status = request_threaded_irq(gf_dev->irq, NULL, gf_irq,
+			IRQF_TRIGGER_RISING | IRQF_ONESHOT,
+			"gf", gf_dev);
+	if (status) {
+		pr_err("failed to request IRQ:%d\n", gf_dev->irq);
+		goto err_irq;
+	}
+	#endif
 
 	proc_entry = proc_create(PROC_NAME, 0644, NULL, &proc_file_ops);
 	if (NULL == proc_entry) {
@@ -817,11 +879,18 @@ static int gf_probe(struct platform_device *pdev)
 	} else {
 		printk("gf3258 Create proc entry success!");
 	}
-
+	#ifdef CONFIG_MACH_TENOR_E
+	enable_irq_wake(gf_dev->irq);
+	gf_dev->irq_enabled = 1;
+	gf_disable_irq(gf_dev);
+	#endif
 	pr_info("version V%d.%d.%02d\n", VER_MAJOR, VER_MINOR, PATCH_LEVEL);
 
 	return status;
-
+#ifdef CONFIG_MACH_TENOR_E
+err_irq:
+		input_unregister_device(gf_dev->input);
+#endif
 #ifdef AP_CONTROL_CLK
 gfspi_probe_clk_enable_failed:
 	gfspi_ioctl_clk_uninit(gf_dev);
@@ -841,6 +910,9 @@ error_dev:
 		mutex_unlock(&device_list_lock);
 	}
 error_hw:
+#ifdef CONFIG_MACH_TENOR_E
+	gf_cleanup(gf_dev);
+#endif
 	gf_dev->device_available = 0;
 
 	return status;
@@ -855,6 +927,11 @@ static int gf_remove(struct platform_device *pdev)
 	struct gf_dev *gf_dev = &gf;
 
 	wake_lock_destroy(&fp_wakelock);
+	#ifdef CONFIG_MACH_TENOR_E
+	if (gf_dev->irq)
+		free_irq(gf_dev->irq, gf_dev);
+
+	#endif
 	fb_unregister_client(&gf_dev->notifier);
 	if (gf_dev->input)
 		input_unregister_device(gf_dev->input);
@@ -866,7 +943,11 @@ static int gf_remove(struct platform_device *pdev)
 	device_destroy(gf_class, gf_dev->devt);
 	clear_bit(MINOR(gf_dev->devt), minors);
 	remove_proc_entry(PROC_NAME,NULL);
-
+	#ifdef CONFIG_MACH_TENOR_E
+	if (gf_dev->users == 0)
+		gf_cleanup(gf_dev);
+	fb_unregister_client(&gf_dev->notifier);
+	#endif
 	mutex_unlock(&device_list_lock);
 
 	return 0;
