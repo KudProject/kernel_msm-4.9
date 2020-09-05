@@ -23,16 +23,6 @@
 		qcom,switch-source = <&pmi8937_switch>;
 	};
 
-	led_flash1: qcom,camera-subflash {
-
-		cell-index = <0x01>;
-		compatible = "qcom,camera-subflash";
-		qcom,flash-type = <1>;
-		qcom,flash-source = <&pmi8937_flash1>;
-		qcom,torch-source = <&pmi8937_torch1>;
-		qcom,switch-source = <&pmi8937_switch>;
-	};
-
 	/delete-node/ qcom,camera-flash;
 };
 
@@ -67,6 +57,20 @@
 };
 
 &cci {
+
+	led_flash1: qcom,camera-frontflash {
+
+		cell-index = <2>;
+		compatible = "qcom,camera-flash-front";
+		qcom,flash-type = <1>;
+		gpios = <&tlmm 50 0>;
+		qcom,gpio-req-tbl-num = <0>;
+		qcom,gpio-req-tbl-flags = <1>;
+		qcom,gpio-req-tbl-label = "FRONT_FLASH";
+		qcom,flash-source = <&pmi8937_flash1>;
+		qcom,torch-source = <&pmi8937_torch1>;
+		qcom,switch-source = <&pmi8937_switch>;
+	};
 
 	qcom,camera@0 {
 
