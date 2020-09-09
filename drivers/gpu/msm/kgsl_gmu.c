@@ -1324,6 +1324,8 @@ static int gmu_enable_gdsc(struct gmu_device *gmu)
 #define CX_GDSC_TIMEOUT	5000	/* ms */
 static int gmu_disable_gdsc(struct gmu_device *gmu)
 {
+	struct kgsl_device *device = container_of(gmu, struct kgsl_device, gmu);
+	struct adreno_gpudev *gpudev = ADRENO_GPU_DEVICE(ADRENO_DEVICE(device));
 	int ret;
 	unsigned long t;
 
@@ -1345,13 +1347,13 @@ static int gmu_disable_gdsc(struct gmu_device *gmu)
 	 */
 	t = jiffies + msecs_to_jiffies(CX_GDSC_TIMEOUT);
 	do {
-		if (!regulator_is_enabled(gmu->cx_gdsc))
+		if (gpudev->cx_is_on && !(gpudev->cx_is_on(device)))
 			return 0;
 		usleep_range(10, 100);
 
 	} while (!(time_after(jiffies, t)));
 
-	if (!regulator_is_enabled(gmu->cx_gdsc))
+	if (gpudev->cx_is_on && !(gpudev->cx_is_on(device)))
 		return 0;
 
 	dev_err(&gmu->pdev->dev, "GMU CX gdsc off timeout");
