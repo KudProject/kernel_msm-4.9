@@ -1,4 +1,4 @@
-/* Copyright (c) 2013-2014,2019 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2013-2014,2019-2020 The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -44,7 +44,9 @@ static inline phys_addr_t msm_timer_get_pa(void) { return 0; }
 #ifdef CONFIG_MSM_BOOT_TIME_MARKER
 static inline int boot_marker_enabled(void) { return 1; }
 void place_marker(const char *name);
+void update_marker(const char *name);
 #else
 static inline void place_marker(char *name) { };
+static inline void update_marker(const char *name) { };
 static inline int boot_marker_enabled(void) { return 0; }
 #endif
