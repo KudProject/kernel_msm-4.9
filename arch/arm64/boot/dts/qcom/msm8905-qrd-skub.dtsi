@@ -226,6 +226,18 @@
 		qcom,fast-avg-setup = <0>;
 		qcom,vadc-thermal-node;
 	};
+
+	chan@36 {
+		qcom,vadc-thermal-node;
+	};
+
+	chan@32 {
+		qcom,vadc-thermal-node;
+	};
+
+	chan@3c {
+		qcom,vadc-thermal-node;
+	};
 };
 
 &soc {
