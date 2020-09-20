@@ -169,11 +169,20 @@ int mdss_spi_panel_on(struct mdss_panel_data *pdata);
 int mdss_spi_panel_off(struct mdss_panel_data *pdata);
 
 #else
+static inline int mdss_spi_panel_kickoff(struct mdss_panel_data *pdata,
+				char __iomem *buf, int len, int stride){
+	return 0;
+}
 static inline int is_spi_panel_continuous_splash_on(
 				struct mdss_panel_data *pdata)
 {
 	return 0;
 }
+static inline int mdp3_spi_vsync_enable(struct mdss_panel_data *pdata,
+			struct mdp3_notification *vsync_client){
+	return 0;
+}
+
 #endif/* End of CONFIG_FB_MSM_MDSS_SPI_PANEL && ONFIG_SPI_QUP */
 
 #endif /* End of __MDSS_SPI_PANEL_H__ */
