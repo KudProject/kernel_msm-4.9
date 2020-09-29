@@ -808,7 +808,7 @@ static void mhi_hwc_cb(void *priv, enum ipa_mhi_event_type event,
 
 		mhi_update_state_info(MHI_STATE_CONNECTED);
 		mhi_log(MHI_MSG_CRITICAL, "Device in M0 State\n");
-		place_marker("MHI - Device in M0 State\n");
+		update_marker("MHI - Device in M0 State\n");
 
 		if (!mhi_ctx->mhi_int)
 			ep_pcie_mask_irq_event(mhi_ctx->phandle,
