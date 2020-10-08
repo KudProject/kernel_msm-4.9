@@ -309,6 +309,24 @@
 	};
 };
 
+&dsi_dual_arglass_boe_dual_1080p_video {
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_dcs";
+	qcom,mdss-dsi-bl-min-level = <1>;
+	qcom,mdss-dsi-bl-max-level = <255>;
+	/*Restricting max brightness to 127 */
+	qcom,mdss-brightness-max-level = <512>;
+	qcom,mdss-dsi-mode-sel-gpio-state = "dual_port";
+	qcom,platform-reset-gpio = <&tlmm 77 0>;
+	qcom,1p8-en-gpio = <&tlmm 76 0>; /*AVDD GPIO */
+	qcom,switch-power-gpio = <&tlmm 75 20>; /* AVEE GPIO */
+	qcom,led-5v-en-gpio = <&tlmm 134 0>;
+	qcom,selab-gpio = <&tlmm 105 0>;/* High for DSI */
+	qcom,oenab-gpio = <&tlmm 106 0>; /*Low for DSI */
+	qcom,led-driver-en1-gpio = <&tlmm 110 0>;
+	qcom,led-driver-en2-gpio = <&tlmm 111 0>;
+};
+
 &dsi_dual_xrsmrtvwr_jdi_video {
 	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
 	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
@@ -474,6 +492,10 @@
 	xo-therm-step {
 		status = "disabled";
 	};
+};
+
+&dsi_dual_arglass_boe_dual_1080p_video_display {
+	qcom,dsi-display-active;
 };
 
 &pm660_charger {
