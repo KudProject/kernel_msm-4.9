@@ -483,3 +483,11 @@
 &pm660_pdphy {
 	qcom,sxr1130-sxr-dp-sink;
 };
+
+&bluetooth {
+	qca,bt-disable;
+};
+
+&icnss {
+	qcom,icnss-disable;
+};
