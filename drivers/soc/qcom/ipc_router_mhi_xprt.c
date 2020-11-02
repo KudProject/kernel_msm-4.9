@@ -359,10 +359,12 @@ static void qcom_mhi_ipc_router_remove(struct mhi_device *mhi_dev)
 {
 	struct ipc_router_mhi_xprt *mhi_xprtp = dev_get_drvdata(&mhi_dev->dev);
 
+	init_completion(&mhi_xprtp->sft_close_complete);
 	msm_ipc_router_xprt_notify(&mhi_xprtp->xprt,
 			IPC_ROUTER_XPRT_EVENT_CLOSE, NULL);
 	D("%s: Notified IPC Router of %s CLOSE\n",
 		  __func__, mhi_xprtp->xprt.name);
+	wait_for_completion(&mhi_xprtp->sft_close_complete);
 	dev_set_drvdata(&mhi_dev->dev, NULL);
 }
 
