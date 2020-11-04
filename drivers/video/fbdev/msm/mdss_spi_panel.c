@@ -535,6 +535,7 @@ int mdss_spi_panel_kickoff(struct mdss_panel_data *pdata,
 
 	rc = mdp3_spi_tx_pixel(tx_buf, ctrl_pdata->byte_per_frame);
 	mutex_unlock(&ctrl_pdata->spi_tx_mutex);
+	enable_spi_panel_te_irq(ctrl_pdata, false);
 
 	return rc;
 }
