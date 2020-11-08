@@ -1,0 +1,189 @@
+/*
+ * Copyright (c) 2015-2018, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+&tlmm {
+
+	cam_sensor_rear_default: cam_sensor_rear_default {
+		mux {
+			pins = "gpio40";
+		};
+
+		config {
+			pins = "gpio40";
+		};
+	};
+
+	cam_sensor_rear_sleep: cam_sensor_rear_sleep {
+		mux {
+			pins = "gpio40";
+		};
+
+		config {
+			pins = "gpio40";
+		};
+	};
+
+
+	cam_sensor_front1_default: cam_sensor_front1_default {
+		mux {
+			pins = "gpio129";
+		};
+
+		config {
+			pins = "gpio129";
+		};
+	};
+
+	cam_sensor_front1_sleep: cam_sensor_front1_sleep {
+		mux {
+			pins = "gpio129";
+		};
+
+		config {
+			pins = "gpio129";
+		};
+	};
+
+	pri-tlmm-lines {
+		pri_tlmm_lines_act: pri_tlmm_lines_act {
+			mux {
+				pins = "gpio91", "gpio93", "gpio88";
+			};
+
+			config {
+				pins = "gpio91", "gpio93", "gpio88";
+			};
+		};
+
+		pri_tlmm_lines_sus: pri_tlmm_lines_sus {
+			mux {
+				pins = "gpio91", "gpio93", "gpio88";
+			};
+
+			config {
+				pins = "gpio91", "gpio93", "gpio88";
+			};
+		};
+	};
+
+	cdfinger_reset {
+		cdfinger_reset_active: cdfinger_reset_active {
+			mux {
+				pins = "gpio140";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio140";
+				drive-strength = <2>;
+				bias-pull-up;
+			};
+		};
+
+		cdfinger_reset_sleep: cdfinger_reset_sleep {
+			mux {
+				pins = "gpio140";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio140";
+				drive-strength = <2>;
+				bias-pull-up;
+			};
+		};
+	};
+
+	cdfinger_irq {
+		cdfinger_irq_active: cdfinger_irq_active {
+			mux {
+				pins = "gpio48";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio48";
+				drive-strength = <2>;
+				bias-disable;
+			};
+		};
+
+		cdfinger_irq_sleep: cdfinger_irq_sleep {
+			mux {
+				pins = "gpio48";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio48";
+				drive-strength = <2>;
+				bias-disable;
+			};
+		};
+	};
+
+	focalfp_reset {
+		focalfp_reset_active: focalfp_reset_active {
+			mux {
+				pins = "gpio140";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio140";
+				drive-strength = <2>;
+				bias-pull-up;
+			};
+		};
+		focalfp_reset_sleep: focalfp_reset_sleep {
+			mux {
+				pins = "gpio140";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio140";
+				drive-strength = <2>;
+				bias-pull-up;
+			};
+		};
+	};
+
+	focalfp_irq {
+		focalfp_irq_active: focalfp_irq_active {
+			mux {
+				pins = "gpio48";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio48";
+				drive-strength = <2>;
+				bias-disable;
+			};
+		};
+
+		focalfp_irq_sleep: focalfp_irq_sleep {
+			mux {
+				pins = "gpio48";
+				function = "gpio";
+			};
+
+			config {
+				pins = "gpio48";
+				drive-strength = <2>;
+				bias-disable;
+			};
+		};
+	};
+};

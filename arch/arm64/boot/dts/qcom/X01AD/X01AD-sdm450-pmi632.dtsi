@@ -1,0 +1,35 @@
+/*
+ * Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+/{
+	mtp_batterydata: qcom,battery-data {
+		#include "battery/Huaqin_QL1830scud_4000mAh_averaged_MasterSlave_Sept25th2018_PMI632.dtsi"
+		#include "battery/Huaqin_QL1830_Second_4000mAh_averaged_MasterSlave_Oct15th2018_PMI632.dtsi"
+		#include "battery/Huaqin_QL1830_Third_4020mAH_averaged_MasterSlave_Nov5th2018_PMi632.dtsi"
+	};
+};
+
+&pmi632_vadc {
+	pinctrl-0 = <&quiet_therm_default &smb_therm_default &gpio1_adc_default>;
+};
+
+&pmi632_gpios {
+	gpio1_adc {
+		gpio1_adc_default: gpio1_adc_default {
+			pins = "gpio1";
+			function = "normal";
+			bias-disable;
+			bias-high-impedance;
+		};
+	};
+};

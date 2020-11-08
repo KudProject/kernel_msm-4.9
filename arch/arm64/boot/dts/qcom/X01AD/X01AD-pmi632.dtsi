@@ -1,0 +1,150 @@
+/* Copyright (c) 2017-2018, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+&spmi_bus {
+	qcom,pmi632@2 {
+		pmi632_vadc: vadc@3100 {
+			chan@13 {
+				label = "CHG_ADC";
+				reg = <0x13>;
+				qcom,decimation = <2>;
+				qcom,pre-div-channel-scaling = <0>;
+				qcom,calibration-type = "absolute";
+				qcom,scale-function = <0>;
+				qcom,hw-settle-time = <2>;
+				qcom,fast-avg-setup = <0>;
+			};
+
+			chan@2a {
+				qcom,scale-function = <26>;
+			};
+
+			chan@52 {
+				qcom,calibration-type = "absolute";
+				qcom,scale-function = <0>;
+			};
+		};
+
+		pmi632_charger: qcom,qpnp-smb5 {
+			qcom,flash-disable-soc = <0>;
+			qcom,pm-gpio1-vadc = <&pmi632_vadc>;
+			qcom,pm-gpio3-vadc = <&pmi632_vadc>;
+			qcom,fcc-max-ua = <2200000>;
+			qcom,float-option = <1>;
+
+			/delete-property/ qcom,hw-connector-mitigation;
+			/delete-property/ qcom,connector-internal-pull-kohm;
+		};
+
+		pmi632_qg: qpnp,qg {
+			qcom,qg-iterm-ma = <150>;
+			qcom,vbatt-empty-mv = <3000>;
+			qcom,vbatt-empty-cold-mv = <2800>;
+			qcom,vbatt-cutoff-mv = <3400>;
+		};
+	};
+
+	pmi632_3: qcom,pmi632@3 {
+		pmi632_rgb: qcom,leds@d000 {
+			red {
+				qcom,max-brightness = <30>;
+			};
+
+			green {
+				qcom,max-brightness = <2>;
+			};
+
+			blue {
+				qcom,max-brightness = <255>;
+			};
+		};
+
+		flash_led: qcom,leds@d300 {
+			pmi632_flash0: qcom,flash_0 {
+				qcom,max-current = <80>;
+				qcom,current-ma = <80>;
+			};
+
+			pmi632_flash1: qcom,flash_1 {
+				qcom,max-current = <1000>;
+			};
+
+			pmi632_torch0: qcom,torch_0 {
+				qcom,max-current = <80>;
+				qcom,current-ma = <80>;
+			};
+
+			pmi632_torch1: qcom,torch_1 {
+				qcom,max-current = <200>;
+				qcom,current-ma = <100>;
+			};
+
+			pmi632_switch1: qcom,led_switch_1 {
+				qcom,led-mask = <3>;
+			};
+		};
+	};
+};
+
+&soc {
+	/delete-node/ qcom,camera-flash;
+
+	led_flash0: qcom,camera-flash@0 {
+		cell-index = <0>;
+		compatible = "qcom,camera-flash";
+		qcom,flash-type = <1>;
+		qcom,flash-source = <&pmi632_flash1>;
+		qcom,torch-source = <&pmi632_torch1>;
+		qcom,switch-source = <&pmi632_switch0>;
+		status = "ok";
+	};
+
+	led_flash1: qcom,camera-flash@1 {
+		cell-index = <1>;
+		compatible = "qcom,camera-subflash";
+		qcom,flash-type = <1>;
+		qcom,flash-source = <&pmi632_flash0>;
+		qcom,torch-source = <&pmi632_torch0>;
+		qcom,switch-source = <&pmi632_switch1>;
+		status = "ok";
+	};
+};
+
+&thermal_zones {
+	pmi-ibat-lvl0 {
+		/delete-property/ wake-capable-sensor;
+	};
+
+	pmi-ibat-lvl1 {
+		/delete-property/ wake-capable-sensor;
+	};
+
+	pmi-vbat-lvl0 {
+		/delete-property/ wake-capable-sensor;
+	};
+
+	pmi-vbat-lvl1 {
+		/delete-property/ wake-capable-sensor;
+	};
+
+	pmi-vbat-lvl2 {
+		/delete-property/ wake-capable-sensor;
+	};
+
+	soc {
+		/delete-property/ wake-capable-sensor;
+	};
+
+	pmi632_tz {
+		/delete-property/ wake-capable-sensor;
+	};
+};
