@@ -549,6 +549,7 @@ void mdss_spi_tx_fb_complete(void *ctx)
 				atomic_read(&ctrl_pdata->koff_cnt));
 		}
 		wake_up_all(&ctrl_pdata->tx_done_waitq);
+		mdss_spi_display_notify(ctrl_pdata, MDP_NOTIFY_FRAME_DONE);
 	}
 }
 #endif
