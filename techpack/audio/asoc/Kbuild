@@ -183,6 +183,7 @@ ifdef CONFIG_SND_HWDEP_ROUTING
 endif
 ifdef CONFIG_QTI_PP
 	PLATFORM_OBJS += msm-qti-pp-config.o
+	CFLAGS_msm-qti-pp-config.o += $(call cc-option, -Wframe-larger-than=2048)
 endif
 
 LINUX_INC +=	-Iinclude/linux
