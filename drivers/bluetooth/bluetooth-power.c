@@ -59,6 +59,7 @@ static int pwr_state;
 struct class *bt_class;
 static int bt_major;
 static int soc_id;
+static bool bt_disabled;
 
 static int bt_vreg_init(struct bt_power_vreg_data *vreg)
 {
@@ -563,6 +564,11 @@ static int bt_power_populate_dt_pinfo(struct platform_device *pdev)
 		return -ENOMEM;
 
 	if (pdev->dev.of_node) {
+		rc = of_get_named_gpio(pdev->dev.of_node, "qca,bt-disable", 0);
+		if (rc) {
+			bt_disabled = true;
+			return -EINVAL;
+		}
 		bt_power_pdata->bt_gpio_sys_rst =
 			of_get_named_gpio(pdev->dev.of_node,
 						"qca,bt-reset-gpio", 0);
@@ -728,6 +734,9 @@ static long bt_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
 	int ret = 0, pwr_cntrl = 0;
 	int chipset_version = 0;
+
+	if (bt_disabled)
+		return ret;
 
 	switch (cmd) {
 #ifdef CONFIG_BTFM_SLIM
