@@ -949,6 +949,7 @@ int cal_utils_dealloc_cal(size_t data_size, void *data,
 		goto err;
 
 	delete_cal_block(cal_block);
+	cal_block = NULL;
 err:
 	mutex_unlock(&cal_type->lock);
 done:
