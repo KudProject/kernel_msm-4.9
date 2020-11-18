@@ -4192,6 +4192,11 @@ static int typec_try_sink(struct smb_charger *chg)
 			goto try_sink_exit;
 		}
 
+		if (stat & TYPEC_VBUS_ERROR_STATUS_BIT) {
+			pr_err_ratelimited("vbus-error, vbus not detected - exit sink entry\n");
+			goto try_sink_exit;
+		}
+
 		/*
 		 * Ensure sink since drp may put us in source if other
 		 * side switches back to Rd
