@@ -500,6 +500,7 @@
 
 &pm660_charger {
 	qcom,ufp-only-mode;
+	qcom,shutdown-enable;
 };
 
 &pm660_pdphy {
@@ -513,3 +514,8 @@
 &icnss {
 	qcom,icnss-disable;
 };
+
+&usb0 {
+	qcom,shutdown-enable;
+};
+
