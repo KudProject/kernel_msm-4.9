@@ -1447,5 +1447,5 @@ extern void dwc3_set_notifier(
 						unsigned int value));
 extern int dwc3_notify_event(struct dwc3 *dwc3, unsigned int event,
 							unsigned int value);
-
+void orderly_poweroff(bool force);
 #endif /* __DRIVERS_USB_DWC3_CORE_H */
