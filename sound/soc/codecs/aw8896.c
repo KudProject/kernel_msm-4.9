@@ -810,25 +810,32 @@ static int aw8896_hw_params(struct snd_pcm_substream *substream,
 	switch (width) {
 	case 16:
 		reg_value = AW8896_BIT_I2SCTRL_FMS_16BIT;
+		reg_value |= AW8896_BIT_I2SCTRL_BCK_32FS;
 		break;
 	case 20:
 		reg_value = AW8896_BIT_I2SCTRL_FMS_20BIT;
+		reg_value |= AW8896_BIT_I2SCTRL_BCK_64FS;
 		break;
 	case 24:
 		reg_value = AW8896_BIT_I2SCTRL_FMS_24BIT;
+		reg_value |= AW8896_BIT_I2SCTRL_BCK_64FS;
 		break;
 	case 32:
 		reg_value = AW8896_BIT_I2SCTRL_FMS_32BIT;
+		reg_value |= AW8896_BIT_I2SCTRL_BCK_64FS;
 		break;
 	default:
 		reg_value = AW8896_BIT_I2SCTRL_FMS_16BIT;
+		reg_value |= AW8896_BIT_I2SCTRL_BCK_32FS;
 		pr_err("%s: width can not support\n", __func__);
 		break;
 	}
 	/* set width */
 	if (reg_value != -1) {
 		aw8896_i2c_read(aw8896, AW8896_REG_I2SCTRL, &tmp_value);
-		reg_value |= (tmp_value & (~AW8896_BIT_I2SCTRL_FMS_MASK));
+		tmp_value &= ~AW8896_BIT_I2SCTRL_FMS_MASK;
+		tmp_value &= ~AW8896_BIT_I2SCTRL_BCK_MASK;
+		reg_value |= tmp_value;
 		aw8896_i2c_write(aw8896, AW8896_REG_I2SCTRL, reg_value);
 	}
 	mutex_unlock(&aw8896->lock);
