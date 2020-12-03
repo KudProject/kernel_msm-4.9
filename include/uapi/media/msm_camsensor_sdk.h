@@ -328,6 +328,8 @@ struct msm_camera_sensor_slave_info {
 	struct msm_sensor_init_params sensor_init_params;
 	enum msm_sensor_output_format_t output_format;
 	uint8_t bypass_video_node_creation;
+	unsigned char is_stereo_config;
+	unsigned char stereo_aux;
 };
 
 struct msm_camera_i2c_reg_array {
