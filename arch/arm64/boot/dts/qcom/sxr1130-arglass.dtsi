@@ -519,3 +519,18 @@
 	qcom,shutdown-enable;
 };
 
+&mdss_dsi_phy0 {
+	qcom,phy-supply-entries {
+		qcom,phy-supply-entry@0 {
+			qcom,supply-post-on-sleep = <20>;
+		};
+	};
+};
+
+&mdss_dsi_phy1 {
+	qcom,phy-supply-entries {
+		qcom,phy-supply-entry@0 {
+			qcom,supply-post-on-sleep = <20>;
+		};
+	};
+};
