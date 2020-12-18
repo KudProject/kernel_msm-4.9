@@ -1,4 +1,4 @@
-/* Copyright (c) 2016-2019, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2016-2020, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -653,6 +653,14 @@
 			compatible = "shared-dma-pool";
 			reusable;
 			size = <0 0x2400000>;
+		};
+
+		memshare_mem: memshare_region {
+			compatible = "shared-dma-pool";
+			no-map;
+			alloc-ranges = <0x0 0x00000000 0x0 0xdfffffff>;
+			alignment = <0x0 0x100000>;
+			size = <0x0 0x800000>;
 		};
 
 		/* global autoconfigured region for contiguous allocations */
