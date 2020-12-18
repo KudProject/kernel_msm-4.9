@@ -468,29 +468,29 @@ static struct notifier_block nb = {
 	.notifier_call = modem_notifier_cb,
 };
 
-static void shared_hyp_mapping(int client_id)
+static void shared_hyp_mapping(int index)
 {
 	int ret;
 	u32 source_vmlist[1] = {VMID_HLOS};
 	int dest_vmids[1] = {VMID_MSS_MSA};
 	int dest_perms[1] = {PERM_READ|PERM_WRITE};
 
-	if (client_id == DHMS_MEM_CLIENT_INVALID) {
+	if (index >= MAX_CLIENTS) {
 		pr_err("memshare: %s, Invalid Client\n", __func__);
 		return;
 	}
 
-	ret = hyp_assign_phys(memblock[client_id].phy_addr,
-			memblock[client_id].size,
+	ret = hyp_assign_phys(memblock[index].phy_addr,
+			memblock[index].size,
 			source_vmlist, 1, dest_vmids,
 			dest_perms, 1);
 
 	if (ret != 0) {
 		pr_err("memshare: hyp_assign_phys failed size=%u err=%d\n",
-				memblock[client_id].size, ret);
+				memblock[index].size, ret);
 		return;
 	}
-	memblock[client_id].hyp_mapping = 1;
+	memblock[index].hyp_mapping = 1;
 }
 
 static int handle_alloc_req(void *req_h, void *req, void *conn_h)
@@ -541,7 +541,7 @@ static int handle_alloc_generic_req(void *req_h, void *req, void *conn_h)
 	struct mem_alloc_generic_resp_msg_v01 *alloc_resp;
 	struct memshare_child *client_node = NULL;
 	int rc, resp = 0, i;
-	int client_id;
+	int index = DHMS_MEM_CLIENT_INVALID;
 	uint32_t size = 0;
 
 	mutex_lock(&memsh_drv->mem_share);
@@ -556,60 +556,63 @@ static int handle_alloc_generic_req(void *req_h, void *req, void *conn_h)
 	}
 	alloc_resp->resp.result = QMI_RESULT_FAILURE_V01;
 	alloc_resp->resp.error = QMI_ERR_NO_MEMORY_V01;
-	client_id = check_client(alloc_req->client_id, alloc_req->proc_id,
+	index = check_client(alloc_req->client_id, alloc_req->proc_id,
 								CHECK);
 
-	for (i = 0; i < MAX_CLIENTS; i++) {
-		if (memsh_child[i]->client_id == client_id) {
-			client_node = memsh_child[i];
-			break;
-		}
-	}
-
-	if (client_id >= MAX_CLIENTS) {
-		pr_err("memshare: %s client not found, requested client: %d, proc_id: %d\n",
-				__func__, alloc_req->client_id,
-				alloc_req->proc_id);
+	if (index >= MAX_CLIENTS) {
+		pr_err(
+			"memshare_alloc: client not found for index: %d, requested client: %d, proc_id: %d\n",
+			index, alloc_req->client_id, alloc_req->proc_id);
 		kfree(alloc_resp);
 		alloc_resp = NULL;
 		mutex_unlock(&memsh_drv->mem_share);
 		return -EINVAL;
 	}
 
-	if (!memblock[client_id].allotted) {
+	for (i = 0; i < MAX_CLIENTS; i++) {
+		if (memsh_child[i]->client_id == alloc_req->client_id) {
+			client_node = memsh_child[i];
+			pr_info(
+				"memshare_alloc: found client with client_id: %d, index: %d\n",
+				alloc_req->client_id, index);
+			break;
+		}
+	}
+
+	if (!memblock[index].allotted) {
 		if (alloc_req->client_id == 1 && alloc_req->num_bytes > 0)
 			size = alloc_req->num_bytes + MEMSHARE_GUARD_BYTES;
 		else
 			size = alloc_req->num_bytes;
 		rc = memshare_alloc(client_node->dev, size,
-					&memblock[client_id]);
+					&memblock[index]);
 		if (rc) {
 			pr_err("memshare: %s,Unable to allocate memory for requested client\n",
 							__func__);
 			resp = 1;
 		}
 		if (!resp) {
-			memblock[client_id].free_memory += 1;
-			memblock[client_id].allotted = 1;
-			memblock[client_id].size = alloc_req->num_bytes;
-			memblock[client_id].peripheral = alloc_req->proc_id;
+			memblock[index].free_memory += 1;
+			memblock[index].allotted = 1;
+			memblock[index].size = alloc_req->num_bytes;
+			memblock[index].peripheral = alloc_req->proc_id;
 		}
 	}
 	pr_debug("memshare: In %s, free memory count for client id: %d = %d",
-		__func__, memblock[client_id].client_id,
-		memblock[client_id].free_memory);
+		__func__, memblock[index].client_id,
+		memblock[index].free_memory);
 
-	memblock[client_id].sequence_id = alloc_req->sequence_id;
-	memblock[client_id].alloc_request = 1;
+	memblock[index].sequence_id = alloc_req->sequence_id;
+	memblock[index].alloc_request = 1;
 
-	fill_alloc_response(alloc_resp, client_id, &resp);
+	fill_alloc_response(alloc_resp, index, &resp);
 	/*
 	 * Perform the Hypervisor mapping in order to avoid XPU viloation
 	 * to the allocated region for Modem Clients
 	 */
-	if (!memblock[client_id].hyp_mapping &&
-		memblock[client_id].allotted)
-		shared_hyp_mapping(client_id);
+	if (!memblock[index].hyp_mapping &&
+		memblock[index].allotted)
+		shared_hyp_mapping(index);
 	mutex_unlock(&memsh_drv->mem_share);
 	pr_debug("memshare: alloc_resp.num_bytes :%d, alloc_resp.resp.result :%lx\n",
 			  alloc_resp->dhms_mem_alloc_addr_info[0].num_bytes,
@@ -660,7 +663,7 @@ static int handle_free_generic_req(void *req_h, void *req, void *conn_h)
 	struct mem_free_generic_resp_msg_v01 free_resp;
 	struct memshare_child *client_node = NULL;
 	int rc, flag = 0, ret = 0, size = 0, i;
-	uint32_t client_id;
+	int index = DHMS_MEM_CLIENT_INVALID;
 	u32 source_vmlist[1] = {VMID_MSS_MSA};
 	int dest_vmids[1] = {VMID_HLOS};
 	int dest_perms[1] = {PERM_READ|PERM_WRITE|PERM_EXEC};
@@ -673,37 +676,38 @@ static int handle_free_generic_req(void *req_h, void *req, void *conn_h)
 	free_resp.resp.result = QMI_RESULT_FAILURE_V01;
 	pr_debug("memshare: Client id: %d proc id: %d\n", free_req->client_id,
 				free_req->proc_id);
-	client_id = check_client(free_req->client_id, free_req->proc_id, FREE);
+	index = check_client(free_req->client_id, free_req->proc_id, FREE);
+
+	if (index >= MAX_CLIENTS) {
+		pr_err("memshare_free: invalid client request to free memory\n");
+		flag = 1;
+	}
 
 	for (i = 0; i < MAX_CLIENTS; i++) {
-		if (memsh_child[i]->client_id == client_id) {
+		if (memsh_child[i]->client_id == free_req->client_id) {
 			client_node = memsh_child[i];
 			break;
 		}
 	}
 
-	if (client_id == DHMS_MEM_CLIENT_INVALID) {
-		pr_err("memshare: %s, Invalid client request to free memory\n",
-					__func__);
-		flag = 1;
-	} else if (!memblock[client_id].guarantee &&
-				!memblock[client_id].client_request &&
-				memblock[client_id].allotted) {
-		pr_debug("memshare: %s:client_id:%d - size: %d",
-				__func__, client_id, memblock[client_id].size);
-		ret = hyp_assign_phys(memblock[client_id].phy_addr,
-				memblock[client_id].size, source_vmlist, 1,
+	if (!flag && !memblock[index].guarantee &&
+				!memblock[index].client_request &&
+				memblock[index].allotted) {
+		pr_debug("memshare: %s: index: %d - size: %d",
+				__func__, index, memblock[index].size);
+		ret = hyp_assign_phys(memblock[index].phy_addr,
+				memblock[index].size, source_vmlist, 1,
 				dest_vmids, dest_perms, 1);
-		if (ret && memblock[client_id].hyp_mapping == 1) {
+		if (ret && memblock[index].hyp_mapping == 1) {
 		/*
 		 * This is an error case as hyp mapping was successful
 		 * earlier but during unmap it lead to failure.
 		 */
 			pr_err("memshare: %s, failed to unmap the region for client id:%d\n",
-				__func__, client_id);
+				__func__, index);
 		}
-		size = memblock[client_id].size;
-		if (memblock[client_id].client_id == 1) {
+		size = memblock[index].size;
+		if (memblock[index].client_id == 1) {
 			/*
 			 *	Check if the client id
 			 *	is of diag so that free
@@ -714,13 +718,13 @@ static int handle_free_generic_req(void *req_h, void *req, void *conn_h)
 			size += MEMSHARE_GUARD_BYTES;
 		}
 		dma_free_attrs(client_node->dev, size,
-			memblock[client_id].virtual_addr,
-			memblock[client_id].phy_addr,
+			memblock[index].virtual_addr,
+			memblock[index].phy_addr,
 			attrs);
-		free_client(client_id);
+		free_client(index);
 	} else {
 		pr_err("memshare: %s, Request came for a guaranteed client (client_id: %d) cannot free up the memory\n",
-						__func__, client_id);
+						__func__, index);
 	}
 
 	if (flag) {
@@ -745,7 +749,7 @@ static int handle_free_generic_req(void *req_h, void *req, void *conn_h)
 
 static int handle_query_size_req(void *req_h, void *req, void *conn_h)
 {
-	int rc, client_id;
+	int rc, index = DHMS_MEM_CLIENT_INVALID;
 	struct mem_query_size_req_msg_v01 *query_req;
 	struct mem_query_size_rsp_msg_v01 *query_resp;
 
@@ -759,10 +763,10 @@ static int handle_query_size_req(void *req_h, void *req, void *conn_h)
 	}
 	pr_debug("memshare: query request client id: %d proc _id: %d\n",
 		query_req->client_id, query_req->proc_id);
-	client_id = check_client(query_req->client_id, query_req->proc_id,
+	index = check_client(query_req->client_id, query_req->proc_id,
 								CHECK);
 
-	if (client_id >= MAX_CLIENTS) {
+	if (index >= MAX_CLIENTS) {
 		pr_err("memshare: %s client not found, requested client: %d, proc_id: %d\n",
 				__func__, query_req->client_id,
 				query_req->proc_id);
@@ -772,9 +776,9 @@ static int handle_query_size_req(void *req_h, void *req, void *conn_h)
 		return -EINVAL;
 	}
 
-	if (memblock[client_id].size) {
+	if (memblock[index].size) {
 		query_resp->size_valid = 1;
-		query_resp->size = memblock[client_id].size;
+		query_resp->size = memblock[index].size;
 	} else {
 		query_resp->size_valid = 1;
 		query_resp->size = 0;
@@ -1043,7 +1047,7 @@ static int memshare_child_probe(struct platform_device *pdev)
 	if (mem_node) {
 		rc = of_reserved_mem_device_init(&pdev->dev);
 		if (rc) {
-			dev_err(&pdev->dev, "memshare: Failed to initialize memory region rc: %d\n",
+			pr_err("memshare: Failed to initialize memory region rc: %d\n",
 				rc);
 			return rc;
 		}
