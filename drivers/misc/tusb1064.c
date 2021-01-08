@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2020-2021, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -81,21 +81,26 @@ static int tusb1064_write(struct i2c_client *client, u8 reg, u8 val)
 	return 0;
 }
 
-void tusb1064_usb_event(bool flip)
+bool tusb1064_usb_event(bool flip)
 {
 	if (pdata) {
 		if (flip) {
-			if (standalone_mode)
+			if (standalone_mode) {
 				tusb1064_write(pdata->i2c_client, 0x0A, 0x05);
+				return true;
+			}
 			else
 				tusb1064_write(pdata->i2c_client, 0x0A, 0x06);
 		} else {
-			if (standalone_mode)
+			if (standalone_mode) {
 				tusb1064_write(pdata->i2c_client, 0x0A, 0x01);
+				return true;
+			}
 			else
 				tusb1064_write(pdata->i2c_client, 0x0A, 0x02);
 		}
 	}
+	return false;
 }
 EXPORT_SYMBOL(tusb1064_usb_event);
 
