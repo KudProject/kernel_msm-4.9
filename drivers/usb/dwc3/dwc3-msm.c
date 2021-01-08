@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2020, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2021, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -2969,7 +2969,12 @@ static void dwc3_resume_work(struct work_struct *w)
 			mdwc->typec_orientation = val.intval ?
 					ORIENTATION_CC2 : ORIENTATION_CC1;
 #ifdef CONFIG_TUSB1064_XR_MISC
-			tusb1064_usb_event(val.intval ? true : false);
+			/*
+			 * TUSB1064 handles the muxing, hence SSPHY only
+			 * needs to be configured to CC1
+			 */
+			if (tusb1064_usb_event(val.intval ? true : false))
+				mdwc->typec_orientation = ORIENTATION_CC1;
 #endif
 #ifdef CONFIG_VXR200_XR_MISC
 			vxr7200_usb_event(true);
