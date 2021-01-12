@@ -1,4 +1,4 @@
-/* Copyright (c) 2020, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2020-2021, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -53,7 +53,7 @@
 				qcom,mdss-dsi-panel-framerate = <60>;
 				qcom,mdss-dsi-on-command = [
 					39 01 00 00 00 00 02 03 00
-					39 01 00 00 00 00 02 53 2C
+					39 01 00 00 00 00 02 53 20
 					/* Brightness control, max: 0xff */
 					39 01 00 00 00 00 03 51 7F 00
 					39 01 00 00 00 00 02 6B 00
@@ -82,16 +82,16 @@
 					39 01 00 00 00 00 03 F0 AA 11
 					39 01 00 00 00 00 09 C1 00 FF 01 00 01
 						 01 01 FF
-					39 01 00 00 00 00 0a C2 00 00 03 43 03
+					39 01 00 00 00 00 0a C2 00 00 03 FF 03
 						 FF 00 90 C2
 					/* CMD2 P2 */
 					39 01 00 00 00 00 03 F0 AA 12
-					39 01 00 00 00 00 02 B0 57
+					39 01 00 00 00 00 02 B0 93
 					39 01 00 00 00 00 02 B1 4D
-					39 01 00 00 00 00 03 B6 11 11
+					39 01 00 00 00 00 03 B6 14 14
 					39 01 00 00 00 00 03 B8 15 15
-					39 01 00 00 00 00 03 B9 01 A5
-					39 01 00 00 00 00 05 BA 01 3A 01 B5
+					39 01 00 00 00 00 03 B9 01 73
+					39 01 00 00 00 00 05 BA 01 20 01 83
 					39 01 00 00 00 00 02 C0 00
 					39 01 00 00 00 00 02 C4 00
 					39 01 00 00 00 00 03 BE 80 80
@@ -185,8 +185,8 @@
 						88 03 F8
 					39 01 00 00 00 00 03 FF 5A 81
 					39 01 00 00 00 00 02 65 14
-					39 01 00 00 00 00 12 F9 66 6A 6E 72 76
-					 7A 7E 82 86 8A 8E 92 96 9A 9E A2 A6
+					39 01 00 00 00 00 12 F9 64 68 6C 70 74
+					 78 7C 80 84 88 8C 90 95 9A A0 A5 B0
 					39 01 00 00 00 00 02 26 20
 					39 01 00 00 00 00 03 F0 AA 13
 					39 01 00 00 00 00 02 D5 00
