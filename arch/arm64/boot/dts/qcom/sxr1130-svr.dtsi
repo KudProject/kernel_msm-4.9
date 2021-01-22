@@ -531,3 +531,22 @@
 &pm660_pdphy {
 	qcom,sxr1130-sxr-dp-sink;
 };
+
+/*Adding delays so that display power settles down*/
+&mdss_dsi_phy0 {
+	qcom,phy-supply-entries {
+		qcom,phy-supply-entry@0 {
+			qcom,supply-pre-on-sleep = <40>;
+			qcom,supply-post-on-sleep = <40>;
+		};
+	};
+};
+
+&mdss_dsi_phy1 {
+	qcom,phy-supply-entries {
+		qcom,phy-supply-entry@0 {
+			qcom,supply-pre-on-sleep = <40>;
+			qcom,supply-post-on-sleep = <40>;
+		};
+	};
+};
