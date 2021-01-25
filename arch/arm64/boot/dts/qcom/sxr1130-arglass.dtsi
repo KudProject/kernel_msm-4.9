@@ -232,18 +232,18 @@
 };
 
 &vendor {
-	svr_batterydata: qcom,battery-data {
+	ar_batterydata: qcom,battery-data {
 		qcom,batt-id-range-pct = <15>;
-		#include "fg-gen3-batterydata-goertek-1400mah.dtsi"
+		#include "fg-gen3-batterydata-goertek-merlin-230mah.dtsi"
 	};
 };
 
 &pm660_fg {
-	qcom,battery-data = <&svr_batterydata>;
+	qcom,battery-data = <&ar_batterydata>;
 };
 
 &pm660_charger {
-	qcom,battery-data = <&svr_batterydata>;
+	qcom,battery-data = <&ar_batterydata>;
 };
 
 &tlmm {
