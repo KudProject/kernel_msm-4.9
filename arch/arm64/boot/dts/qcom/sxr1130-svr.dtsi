@@ -344,7 +344,7 @@
 
 &dsi_sim_vid {
 	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
-	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
+	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_dcs";
 	qcom,platform-reset-gpio = <&tlmm 90 0>;
 };
 
@@ -532,7 +532,7 @@
 	qcom,sxr1130-sxr-dp-sink;
 };
 
-/*Adding delays so that display power settles down*/
+/*Adding delays so that display power settles down properly*/
 &mdss_dsi_phy0 {
 	qcom,phy-supply-entries {
 		qcom,phy-supply-entry@0 {
