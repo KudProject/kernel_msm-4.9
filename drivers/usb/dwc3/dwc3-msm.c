@@ -358,6 +358,7 @@ static void dwc3_msm_notify_event(struct dwc3 *dwc, unsigned int event,
 static int dwc3_restart_usb_host_mode(struct notifier_block *nb,
 					unsigned long event, void *ptr);
 static bool shutdown_when_disconnected;
+static bool shutdown_from_sysfs;
 
 /**
  *
@@ -2978,7 +2979,8 @@ static void dwc3_resume_work(struct work_struct *w)
 				mdwc->typec_orientation = ORIENTATION_CC1;
 #endif
 #ifdef CONFIG_VXR200_XR_MISC
-			vxr7200_usb_event(true);
+			if (!shutdown_from_sysfs)
+				vxr7200_usb_event(true);
 #endif
 
 		}
@@ -3522,12 +3524,14 @@ static ssize_t mode_store(struct device *dev, struct device_attribute *attr,
 	if (sysfs_streq(buf, "peripheral")) {
 		mdwc->vbus_active = true;
 		mdwc->id_state = DWC3_ID_FLOAT;
+		shutdown_from_sysfs = false;
 	} else if (sysfs_streq(buf, "host")) {
 		mdwc->vbus_active = false;
 		mdwc->id_state = DWC3_ID_GROUND;
 	} else {
 		mdwc->vbus_active = false;
 		mdwc->id_state = DWC3_ID_FLOAT;
+		shutdown_from_sysfs = true;
 	}
 
 	dwc3_ext_event_notify(mdwc);
@@ -4683,9 +4687,11 @@ static void dwc3_otg_sm_work(struct work_struct *w)
 			dwc3_msm_gadget_vbus_draw(mdwc, 0);
 			dev_dbg(mdwc->dev, "Cable disconnected\n");
 #ifdef CONFIG_VXR200_XR_MISC
-			vxr7200_usb_event(false);
+			if (!shutdown_from_sysfs)
+				vxr7200_usb_event(false);
 #endif
-			if (shutdown_when_disconnected) {
+			if (shutdown_when_disconnected &&
+					 !shutdown_from_sysfs) {
 				pr_err("ARGlass: USB discontd, powering off\n");
 				orderly_poweroff(true);
 			}
