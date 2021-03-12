@@ -1,4 +1,4 @@
-/* Copyright (c) 2016-2020, Linux Foundation. All rights reserved.
+/* Copyright (c) 2016-2021, Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -404,6 +404,11 @@ struct rx_msg {
 #define SXR_SEND_SVDM(pd, cmd, num, tx_vdos, pos) usbpd_send_svdm(pd, 0xFF01, \
 						cmd, SVDM_CMD_TYPE_RESP_ACK, \
 						 num, tx_vdos, pos)
+
+#define SXR_SEND_ATTEN(pd, cmd, num, tx_vdos, pos) usbpd_send_svdm(pd, 0xFF01, \
+						cmd, SVDM_CMD_TYPE_INITIATOR, \
+						num, tx_vdos, pos)
+
 struct usbpd {
 	struct device		dev;
 	struct workqueue_struct	*wq;
@@ -499,6 +504,7 @@ struct usbpd {
 	bool			send_get_battery_status;
 	u32			battery_sts_dobj;
 	bool			is_sxr_dp_sink;
+	u8			dp_hpd_status_db;
 };
 
 static LIST_HEAD(_usbpd);	/* useful for debugging */
@@ -3975,6 +3981,50 @@ static ssize_t get_battery_status_show(struct device *dev,
 }
 static DEVICE_ATTR_RW(get_battery_status);
 
+static ssize_t dp_hpd_status_store(struct device *dev,
+		struct device_attribute *attr, const char *buf, size_t size)
+{
+	struct usbpd *pd = dev_get_drvdata(dev);
+	int val;
+	u32 tx_vdos[1];
+
+	if (sscanf(buf, "%d\n", &val) != 1) {
+		usbpd_dbg(&pd->dev, "Error: size is not 1\n");
+		return -EINVAL;
+	}
+
+	if (!sxr_dp_mode) {
+		usbpd_dbg(&pd->dev, "Error: Device is not in DP mode\n");
+		pd->dp_hpd_status_db = 0;
+		return size;
+	}
+	pd->dp_hpd_status_db = val;
+
+	if (val) {
+		usbpd_dbg(&pd->dev, "making hpd high\n");
+		tx_vdos[0] = XR1_PIN_E_VDO; // Pin assign E
+	} else {
+		usbpd_dbg(&pd->dev, "making hpd low\n");
+		tx_vdos[0] = XR1_DEFAULT_VDO; // Pin assign E
+	}
+	SXR_SEND_ATTEN(pd, USBPD_SVDM_ATTENTION, 0x1, tx_vdos, 0x1);
+
+	return size;
+}
+
+static ssize_t dp_hpd_status_show(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	struct usbpd *pd = dev_get_drvdata(dev);
+
+	if (pd->dp_hpd_status_db == -EINVAL)
+		return -EINVAL;
+
+	return snprintf(buf, PAGE_SIZE, "%s\n",
+		((pd->dp_hpd_status_db >= 1) ? "on" : "off"));
+}
+static DEVICE_ATTR_RW(dp_hpd_status);
+
 static struct attribute *usbpd_attrs[] = {
 	&dev_attr_contract.attr,
 	&dev_attr_initial_pr.attr,
@@ -3999,6 +4049,7 @@ static struct attribute *usbpd_attrs[] = {
 	&dev_attr_get_pps_status.attr,
 	&dev_attr_get_battery_cap.attr,
 	&dev_attr_get_battery_status.attr,
+	&dev_attr_dp_hpd_status.attr,
 	NULL,
 };
 ATTRIBUTE_GROUPS(usbpd);
