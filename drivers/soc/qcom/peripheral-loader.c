@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2020, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2010-2021, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -725,7 +725,9 @@ static int pil_init_mmap(struct pil_desc *desc, const struct pil_mdt *mdt,
 	if (ret)
 		return ret;
 
-	place_marker("M - Modem Image Start Loading");
+	if (!strcmp(desc->name, "modem"))
+		place_marker("M - Modem Image Start Loading");
+
 	pil_info(desc, "loading from %pa to %pa\n", &priv->region_start,
 							&priv->region_end);
 
@@ -1194,7 +1196,10 @@ int pil_boot(struct pil_desc *desc)
 	}
 	trace_pil_event("reset_done", desc);
 	pil_info(desc, "Brought out of reset\n");
-	place_marker("M - Modem out of reset");
+
+	if (!strcmp(desc->name, "modem"))
+		place_marker("M - Modem out of reset");
+
 	desc->modem_ssr = false;
 err_auth_and_reset:
 	if (ret && desc->subsys_vmid > 0) {
