@@ -1,4 +1,4 @@
-/* Copyright (c) 2008-2020, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2008-2021, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -58,7 +58,8 @@ static const struct diag_ssid_range_t msg_mask_tbl[] = {
 	{ .ssid_first = MSG_SSID_22, .ssid_last = MSG_SSID_22_LAST },
 	{ .ssid_first = MSG_SSID_23, .ssid_last = MSG_SSID_23_LAST },
 	{ .ssid_first = MSG_SSID_24, .ssid_last = MSG_SSID_24_LAST },
-	{ .ssid_first = MSG_SSID_25, .ssid_last = MSG_SSID_25_LAST }
+	{ .ssid_first = MSG_SSID_25, .ssid_last = MSG_SSID_25_LAST },
+	{ .ssid_first = MSG_SSID_26, .ssid_last = MSG_SSID_26_LAST }
 };
 
 static int diag_check_update(int md_peripheral, int pid)
