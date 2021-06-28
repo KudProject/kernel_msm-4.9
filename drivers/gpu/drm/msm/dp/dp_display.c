@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2017-2021, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -780,6 +780,9 @@ static int dp_display_usbpd_attention_cb(struct device *dev)
 		return -ENODEV;
 	}
 
+	if (dp->usbpd->hpd_high && dp->usbpd->hpd_irq)
+		drm_dp_cec_irq(dp->aux->drm_aux);
+
 	if (dp->usbpd->hpd_irq && dp->usbpd->hpd_high &&
 	    dp->power_on) {
 		dp->link->process_request(dp->link);
@@ -1052,25 +1055,6 @@ static int dp_display_set_mode(struct dp_display *dp_display,
 
 	mode->timing.bpp = dp->panel->get_mode_bpp(dp->panel,
 			mode->timing.bpp, pixel_clk_khz);
-
-	/* Refactor bits per pixel for YUV422 format */
-	if (mode->timing.out_format == MSM_MODE_FLAG_COLOR_FORMAT_YCBCR422) {
-		switch (mode->timing.bpp) {
-		case 18:
-			mode->timing.bpp = 24;
-			break;
-		case 24:
-			mode->timing.bpp = 30;
-			break;
-		case 30:
-			mode->timing.bpp = 36;
-			break;
-		default:
-			mode->timing.bpp = 30;
-			break;
-		};
-		pr_debug("YCC422 bpp = %d\n", mode->timing.bpp);
-	}
 
 	dp->panel->pinfo = mode->timing;
 	dp->panel->init(dp->panel);
