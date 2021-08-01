@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2013, Sony Mobile Communications AB.
- * Copyright (c) 2013-2018, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013-2018, 2021, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -967,7 +967,7 @@ static void gpio_muxed_to_pdc(struct irq_domain *pdc_domain, struct irq_data *d)
 			struct msm_pdc_mux_output *pdc_out =
 						&pctrl->soc->pdc_mux_out[j];
 
-			if (pdc_out->mux == mux)
+			if (pdc_out->mux == gpio)
 				break;
 			if (pdc_out->mux)
 				continue;
