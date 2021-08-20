@@ -27,7 +27,7 @@
 	interrupt-parent = <&wakegic>;
 
 	chosen {
-		bootargs = "core_ctl_disable_cpumask=0-7 kpti=0";
+		bootargs = "mem=1230M core_ctl_disable_cpumask=0-7 kpti=0";
 	};
 
 	vendor: vendor {
@@ -74,19 +74,19 @@
 		modem_mem: modem_region@0 {
 			compatible = "removed-dma-pool";
 			no-map;
-			reg = <0x0 0x86c00000 0x0 0x6a00000>;
+			reg = <0x0 0x86c00000 0x0 0x5a00000>;
 		};
 
 		adsp_fw_mem: adsp_fw_region@0 {
 			compatible = "removed-dma-pool";
 			no-map;
-			reg = <0x0 0x8d600000 0x0 0x1100000>;
+			reg = <0x0 0x8c600000 0x0 0x1100000>;
 		};
 
 		wcnss_fw_mem: wcnss_fw_region@0 {
 			compatible = "removed-dma-pool";
 			no-map;
-			reg = <0x0 0x8e700000 0x0 0x700000>;
+			reg = <0x0 0x8d700000 0x0 0x700000>;
 		};
 
 		venus_mem: venus_region@0 {
