@@ -958,26 +958,26 @@ static ssize_t show_bios_limit(struct cpufreq_policy *policy, char *buf)
 static ssize_t store_disable_cpucooling(struct cpufreq_policy *policy,
                                        const char *buf, size_t count)
 {
-       unsigned int val = 0;
-       unsigned int ret;
+	unsigned int val = 0;
+	unsigned int ret;
 
-       if (!policy->governor)
+	if (!policy->governor)
 		return -EINVAL;
 
 	ret = sscanf(buf, "%u", &val);
-       if (ret != 1)
-               return -EINVAL;
-       policy->disable_cpucooling = (bool)val;
+	if (ret != 1)
+		return -EINVAL;
+	policy->disable_cpucooling = (bool)val;
 
 	return count;
 }
 
 static ssize_t show_disable_cpucooling(struct cpufreq_policy *policy, char *buf)
 {
-       if (!policy->governor)
-               return -EINVAL;
+	if (!policy->governor)
+		return -EINVAL;
 
-       return policy->disable_cpucooling;
+	return policy->disable_cpucooling;
 }
 cpufreq_freq_attr_rw(disable_cpucooling);
 cpufreq_freq_attr_ro_perm(cpuinfo_cur_freq, 0400);
