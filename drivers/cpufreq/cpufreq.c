@@ -955,6 +955,31 @@ static ssize_t show_bios_limit(struct cpufreq_policy *policy, char *buf)
 	return sprintf(buf, "%u\n", policy->cpuinfo.max_freq);
 }
 
+static ssize_t store_disable_cpucooling(struct cpufreq_policy *policy,
+                                       const char *buf, size_t count)
+{
+       unsigned int val = 0;
+       unsigned int ret;
+
+       if (!policy->governor)
+		return -EINVAL;
+
+	ret = sscanf(buf, "%u", &val);
+       if (ret != 1)
+               return -EINVAL;
+       policy->disable_cpucooling = (bool)val;
+
+	return count;
+}
+
+static ssize_t show_disable_cpucooling(struct cpufreq_policy *policy, char *buf)
+{
+       if (!policy->governor)
+               return -EINVAL;
+
+       return policy->disable_cpucooling;
+}
+cpufreq_freq_attr_rw(disable_cpucooling);
 cpufreq_freq_attr_ro_perm(cpuinfo_cur_freq, 0400);
 cpufreq_freq_attr_ro(cpuinfo_min_freq);
 cpufreq_freq_attr_ro(cpuinfo_max_freq);
@@ -982,6 +1007,7 @@ static struct attribute *default_attrs[] = {
 	&scaling_driver.attr,
 	&scaling_available_governors.attr,
 	&scaling_setspeed.attr,
+	&disable_cpucooling.attr,
 	NULL
 };
 
