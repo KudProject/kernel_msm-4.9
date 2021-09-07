@@ -23,8 +23,6 @@
 #include "dsi-panel-truly-wuxga-video.dtsi"
 #include "dsi-panel-lt8912-480p-video.dtsi"
 #include "dsi-panel-lt8912-1080p-video.dtsi"
-#include "dsi-panel-lt9611-1080p-video.dtsi"
-#include "dsi-panel-ili988c-dual-video.dtsi"
 #include "dsi-panel-hx8399c-fhd-plus-video.dtsi"
 #include "dsi-panel-hx83100a-800p-video.dtsi"
 #include "dsi-panel-boent51021-1200p-video.dtsi"
@@ -71,46 +69,6 @@
 			qcom,supply-post-on-sleep = <10>;
 		};
 	};
-	dsi_panel_pwr_supply_ili: dsi_panel_pwr_supply_ili {
-		#address-cells = <1>;
-		#size-cells = <0>;
-
-		qcom,panel-supply-entry@0 {
-			reg = <0>;
-			qcom,supply-name = "vdd";
-			qcom,supply-min-voltage = <2850000>;
-			qcom,supply-max-voltage = <2850000>;
-			qcom,supply-enable-load = <100000>;
-			qcom,supply-disable-load = <100>;
-		};
-
-		qcom,panel-supply-entry@1 {
-			reg = <1>;
-			qcom,supply-name = "vddio";
-			qcom,supply-min-voltage = <1800000>;
-			qcom,supply-max-voltage = <1800000>;
-			qcom,supply-enable-load = <100000>;
-			qcom,supply-disable-load = <100>;
-		};
-		qcom,panel-supply-entry@2 {
-			reg = <2>;
-			qcom,supply-name = "lab";
-			qcom,supply-min-voltage = <5500000>;
-			qcom,supply-max-voltage = <5500000>;
-			qcom,supply-enable-load = <100000>;
-			qcom,supply-disable-load = <100>;
-		};
-		qcom,panel-supply-entry@3 {
-			reg = <3>;
-			qcom,supply-name = "ibb";
-			qcom,supply-min-voltage = <5500000>;
-			qcom,supply-max-voltage = <5500000>;
-			qcom,supply-enable-load = <100000>;
-			qcom,supply-disable-load = <100>;
-			qcom,supply-post-on-sleep = <10>;
-		};
-	};
-
 };
 
 &dsi_truly_1080_vid {
@@ -243,20 +201,4 @@
 		25 20 08 0A 06 03 04 a0
 		25 20 08 0A 06 03 04 a0
 		25 1D 08 0A 06 03 04 a0];
-};
-
-&dsi_lt9611_1080_vid {
-	qcom,mdss-dsi-panel-timings-phy-v2 = [24 1f 08 09 05 02 04 a0
-		24 1f 08 09 05 02 04 a0
-		24 1f 08 09 05 02 04 a0
-		24 1f 08 09 05 02 04 a0
-		24 1b 08 09 05 02 04 a0];
-};
-
-&dsi_ili9881c_720p_video {
-	qcom,mdss-dsi-panel-timings-phy-v2 = [1e 1b 04 05 02 02 04 a0
-		1e 1b 04 05 02 02 04 a0
-		1e 1b 04 05 02 02 04 a0
-		1e 1b 04 05 02 02 04 a0
-		1e 1b 04 05 02 02 04 a0];
 };
