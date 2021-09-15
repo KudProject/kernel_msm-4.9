@@ -85,11 +85,9 @@
 };
 
 &mdss_dsi0 {
-	lab-supply = <&lab_regulator>;
-	ibb-supply = <&ibb_regulator>;
 	/delete-property/ vdd-supply;
 
-	qcom,dsi-pref-prim-pan = <&dsi_r69006_1080p_cmd>;
+	qcom,dsi-pref-prim-pan = <&dsi_r69006_1080p_video>;
 	pinctrl-names = "mdss_default", "mdss_sleep";
 	pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
 	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
