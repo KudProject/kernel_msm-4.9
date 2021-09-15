@@ -41,6 +41,10 @@
 				qcom,pon-type = <0>;
 				qcom,pull-up = <1>;
 				linux,code = <116>;
+				qcom,support-reset = <1>;
+				qcom,s1-timer = <10256>;
+				qcom,s2-timer = <2000>;
+				qcom,s2-type = <4>;
 			};
 
 			qcom,pon_2 {
@@ -107,15 +111,16 @@
 				<0x0 0xc1 0 IRQ_TYPE_NONE>,
 				<0x0 0xc3 0 IRQ_TYPE_NONE>,
 				<0x0 0xc4 0 IRQ_TYPE_NONE>,
+				<0x0 0xc5 0 IRQ_TYPE_NONE>,
 				<0x0 0xc6 0 IRQ_TYPE_NONE>,
 				<0x0 0xc7 0 IRQ_TYPE_NONE>;
 			interrupt-names = "pm8953_gpio1", "pm8953_gpio2",
-					"pm8953_gpio4", "pm8953_gpio5",
+					"pm8953_gpio4", "pm8953_gpio5", "pm8953_gpio6",
 					"pm8953_gpio7", "pm8953_gpio8";
 
 			gpio-controller;
 			#gpio-cells = <2>;
-			qcom,gpios-disallowed = <3 6>;
+			qcom,gpios-disallowed = <3>;
 		};
 
 		pm8953_vadc: vadc@3100 {

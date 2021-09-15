@@ -306,6 +306,12 @@
 			#gpio-cells = <2>;
 		};
 
+		qcom,fan@c500 {
+			compatible = "qcom,qpnp-fan";
+			reg = <0xc500 0x100>;
+			pwms = <&pmi632_pwm 3 1000000>;
+		};
+
 		pmi632_charger: qcom,qpnp-smb5 {
 			compatible = "qcom,qpnp-smb5";
 			#address-cells = <1>;
@@ -585,6 +591,14 @@
 			};
 			lpg@3 {
 				qcom,lpg-chan-id = <3>;
+				qcom,ramp-step-ms = <200>;
+				qcom,ramp-low-index = <0>;
+				qcom,ramp-high-index = <19>;
+				qcom,ramp-pattern-repeat;
+				qcom,lpg-sdam-base = <0x64>;
+			};
+			lpg@4 {
+				qcom,lpg-chan-id = <4>;
 				qcom,ramp-step-ms = <200>;
 				qcom,ramp-low-index = <0>;
 				qcom,ramp-high-index = <19>;

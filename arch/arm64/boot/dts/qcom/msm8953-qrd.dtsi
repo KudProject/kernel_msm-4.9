@@ -65,6 +65,16 @@
 			linux,can-disable;
 			gpio-key,wakeup;
 		};
+
+		force_usb_boot {
+			label = "force_boot";
+			gpios = <&tlmm 37 0x1>;
+			linux,input-type = <1>;
+			linux,code = <240>;
+			debounce-interval = <15>;
+			linux,can-disable;
+			gpio-key,wakeup;
+		};
 	};
 };
 
@@ -81,6 +91,19 @@
 			function = "normal";
 			input-enable;
 			power-source = <1>;
+		};
+	};
+};
+
+&pmi632_gpios {
+	pmi632_gpio1 {
+		/* Disable GPIO1 for h/w base mitigation */
+		pmi632_gpio1_default: pmi632_gpio1_default {
+			pins = "gpio1";
+			function = "normal"; /* normal output */
+			power-source = <0>; /* VIN0 */
+			output-high; /* digital output, no invert */
+			input-disable; /* prevent GPIO from being set to DIO */
 		};
 	};
 };
@@ -110,6 +133,227 @@
 		clock-names = "ref_clk";
 	};
 };
+
+&i2c_8 { /* BLSP2 QUP4 */
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	status = "ok";
+	lt9611@3b {
+		compatible = "lontium,lt9611";
+		reg = <0x3b>;
+		lt,pwr-sys1v8-gpio = <&tlmm 87 0x00>;
+		lt,pwr-sys3v3-gpio = <&tlmm 33 0x00>;
+		lt,reset-gpio = <&tlmm 38 0x00>;
+		lt,irq-gpio = <&tlmm 140 0x00>;
+		lt,video-format-id = <4>;
+		lt,mipi-lanes-type = <0>; /* 4 lane */
+		lt,mipi-ports-type = <0>; /* single port */
+		lt,instance_id = <0>;
+		lt,chipname = "lt9611";
+	};
+	sn65@2c {
+		compatible = "sn65,dsi84";
+		reg = <0x2c>;
+		vdd-supply = <&pm8953_l5>;
+		vcc_i2c-supply = <&pm8953_l5>;
+		sn65,vdd-supply-voltage = <1800000 1800000>;
+		sn65dsi84,en-gpio = <&tlmm 141 0x00>;
+		sn65dsi84,res-1080p;         /* 1280x720 or 1280x960  */
+		sn65dsi84,wait = <10>; /* wait(ms) after chip enable */
+		//sn65dsi84,reg-dump;   /* dump sn65dsi84 registers for debug purpose */
+		//sn65dsi84,colorbar;   /* display colorbar for debug purpose */
+		sn65dsi84,colorbar-command = [09 01 00 /* <reg value wait(ms)> */
+			0d 00 00
+			0a 05 00
+			0b 20 00
+			10 26 00
+			11 00 00
+			12 51 00
+			13 00 00
+			18 6c 00
+			19 00 00
+			1a 03 00
+			1b 00 00
+			20 c0 00    //width 1920
+			21 03 00
+			22 00 00
+			23 00 00
+			24 38 00
+			25 04 00
+			26 00 00
+			27 00 00
+			28 cd 00
+			29 00 00
+			2a 00 00
+			2b 00 00
+			2c 19 00
+			2d 00 00
+			2e 00 00
+			2f 00 00
+			30 0a 00
+			31 00 00
+			32 00 00
+			33 00 00
+			34 19 00
+			35 00 00
+			36 0a 00
+			37 00 00
+			38 28 00
+			39 00 00
+			3a 1e 00
+			3b 00 00
+			3c 10 00  /* enable colorbar */
+			3d 00 00
+			3e 00 00
+			09 00 00
+			0d 01 00];
+		sn65dsi84,on-command-720p = [09 01 00
+			0d 00 00
+			0a 04 00
+			0b 02 00
+			10 20 00
+			11 00 00
+			12 30 00
+			13 00 00
+			18 6f 00
+			19 00 00
+			1a 03 00
+			1b 00 00
+			20 00 00 /* width-l(a) */
+			21 05 00 /* width-h(a) */
+			22 00 00 /* width-l(b) */
+			23 00 00 /* width-h(b) */
+			24 d0 00 /* height-l(a) */
+			25 02 00 /* Height-h(a) */
+			26 00 00 /* height-l(b) */
+			27 00 00 /* height-h(b) */
+			28 80 00 /* sync delay low(a) */
+			29 02 00 /* sync delay high(a) */
+			2a 00 00 /* sync delay low(b) */
+			2b 00 00 /* sync delay high(b) */
+			2c 10 00 /* hpw-l(a) */
+			2d 00 00 /* hpw-h(a) */
+			2e 00 00 /* hpw-l(b) */
+			2f 00 00 /* hpw-h(b) */
+			30 06 00 /* vpw-l(a) */
+			31 00 00 /* vpw-h(a) */
+			32 00 00 /* vpw-l(b) */
+			33 00 00 /* vpw-h(b) */
+			34 05 00 /* hbp(a) */
+			35 00 00 /* hbp(b) */
+			36 14 00 /* vbp(a) */
+			37 00 00 /* vbp(b) */
+			38 26 00 /* hfp(a) */
+			39 00 00 /* hfp(b) */
+			3a fe 00 /* vfp(a) */
+			3b 00 00 /* vfp(b) */
+			3c 00 00 /* bit4 channel a test pattern; bit0 - channel b test pattern */
+			3d 00 00
+			3e 00 00
+		    09 00 00
+		    0d 01 00];
+	    sn65dsi84,on-command-960p = [09 01 00 /* <reg value wait(ms)> */
+			0d 00 00
+			0a 04 00
+			0b 02 00
+			10 20 00
+			11 00 00
+			12 30 00
+			13 00 00
+			18 6f 00
+			19 00 00
+			1a 03 00
+			1b 00 00
+			20 00 00 /* width-l(a) */
+			21 05 00 /* width-h(a) */
+			22 00 00 /* width-l(b) */
+			23 05 00 /* width-h(b) */
+			24 c0 00 /* height-l(a) */
+			25 03 00 /* Height-h(a) */
+			26 c0 00 /* height-l(b) */
+			27 03 00 /* height-h(b) */
+			28 80 00 /* sync delay low(a) */
+			29 02 00 /* sync delay high(a) */
+			2a 00 00 /* sync delay low(b) */
+			2b 00 00 /* sync delay high(b) */
+			2c 10 00 /* hpw-l(a) */
+			2d 00 00 /* hpw-h(a) */
+			2e 00 00 /* hpw-l(b) */
+			2f 00 00 /* hpw-h(b) */
+			30 06 00 /* vpw-l(a) */
+			31 00 00 /* vpw-h(a) */
+			32 00 00 /* vpw-l(b) */
+			33 06 00 /* vpw-h(b) */
+			34 10 00 /* hbp(a) */
+			35 10 00 /* hbp(b) */
+			36 14 00 /* vbp(a) */
+			37 14 00 /* vbp(b) */
+			38 26 00 /* hfp(a) */
+			39 26 00 /* hfp(b) */
+			3a 0e 00 /* vfp(a) */
+			3b 0e 00 /* vfp(b) */
+			3c 00 00 /* bit4 channel a test pattern; bit0 - channel b test pattern */
+			3d 00 00
+			3e 00 00
+			09 00 00
+			0d 01 00];
+		sn65dsi84,on-command-1080p = [09 01 00 /* <reg value wait(ms)> */
+			0d 00 00
+			0a 05 00
+			0b 20 00
+			10 26 00
+			11 00 00
+			12 51 00
+			13 00 00
+			18 6c 00
+			19 00 00
+			1a 03 00
+			1b 00 00
+			20 80 00    /* width-l(a) */
+			21 07 00    /* width-h(a) */
+			22 00 00    /* width-l(b) */
+			23 00 00    /* width-h(b) */
+			24 38 00    /* height-l(a) */
+			25 04 00    /* Height-h(a) */
+			26 00 00    /* height-l(b) */
+			27 00 00    /* height-h(b) */
+			28 80 00    /* sync delay low(a) */
+			29 02 00    /* sync delay high(a) */
+			2a 00 00    /* sync delay low(b) */
+			2b 00 00    /* sync delay high(b) */
+			2c 19 00    /* hpw-l(a) */
+			2d 00 00    /* hpw-h(a) */
+			2e 00 00    /* hpw-l(b) */
+			2f 00 00    /* hpw-h(b) */
+			30 0a 00    /* vpw-l(a) */
+			31 00 00    /* vpw-h(a) */
+			32 00 00    /* vpw-l(b) */
+			33 00 00    /* vpw-h(b) */
+			34 19 00    /* hbp(a) */
+			35 00 00    /* hbp(b) */
+			36 0a 00    /* vbp(a) */
+			37 00 00    /* vbp(b) */
+			38 28 00    /* hfp(a) */
+			39 00 00    /* hfp(b) */
+			3a 1e 00    /* vfp(a) */
+			3b 00 00    /* vfp(b) */
+			3c 00 00    /* bit4 channel a test pattern; bit0 - channel b test pattern */
+			3d 00 00
+			3e 00 00
+			09 00 00
+			0d 01 00];
+		sn65dsi84,off-command = [0d 00 00];
+	    };
+		mcp4725@60 {
+			compatible = "mcp4725";
+			pinctrl-names = "default"; //¡ø because of the default SW will set the config as "gpio16_dig_out_default" when init.
+			pinctrl-0 = <&pmi632_gpio1_default>;
+			test-gpios = <&pmi632_gpios 1 GPIO_ACTIVE_HIGH>;
+			reg = <0x60>;
+			vcc_i2c-supply = <&pm8953_l5>;
+	    };
+    };
 
 &sdhc_1 {
 	/* device core power supply */
