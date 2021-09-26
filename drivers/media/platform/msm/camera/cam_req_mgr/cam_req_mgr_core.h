@@ -1,4 +1,4 @@
-/* Copyright (c) 2016-2019, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2016-2020, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -35,8 +35,6 @@
 #define SYNC_LINK_SOF_CNT_MAX_LMT 1
 
 #define MAXIMUM_LINKS_PER_SESSION  4
-
-#define MAX_SOF_TRIGGER_CNT_IN_WORKQ	1
 
 /**
  * enum crm_workq_task_type
@@ -298,7 +296,6 @@ struct cam_req_mgr_connected_device {
  * @state                : link state machine
  * @parent               : pvt data - link's parent is session
  * @lock                 : mutex lock to guard link data operations
- * @trigger_spin_lock    : spin lock to protect sof_trigger_cnt
  * @link_state_spin_lock : spin lock to protect link state variable
  * @subscribe_event      : irqs that link subscribes, IFE should send
  *                         notification to CRM at those hw events.
@@ -316,8 +313,6 @@ struct cam_req_mgr_connected_device {
  * @last_flush_id        : Last request to flush
  * @is_used              : 1 if link is in use else 0
  *
- * @sof_trigger_cnt      : Counter to keep track of SOF trigger requests that
- *                         are submitted to the work queue.
  */
 struct cam_req_mgr_core_link {
 	int32_t                              link_hdl;
@@ -332,7 +327,6 @@ struct cam_req_mgr_core_link {
 	enum cam_req_mgr_link_state          state;
 	void                                *parent;
 	struct mutex                         lock;
-	spinlock_t                           trigger_spin_lock;
 	spinlock_t                           link_state_spin_lock;
 	uint32_t                             subscribe_event;
 	uint32_t                             trigger_mask;
@@ -344,7 +338,6 @@ struct cam_req_mgr_core_link {
 	int32_t                              open_req_cnt;
 	uint32_t                             last_flush_id;
 	atomic_t                             is_used;
-	int32_t                              sof_trigger_cnt;
 };
 
 /**

@@ -167,7 +167,7 @@ int mdss_spi_wait_tx_done(struct spi_panel_data *ctrl_pdata);
 int mdss_spi_panel_reset(struct mdss_panel_data *pdata, int enable);
 int mdss_spi_panel_on(struct mdss_panel_data *pdata);
 int mdss_spi_panel_off(struct mdss_panel_data *pdata);
-
+int mdss_spi_display_notify(struct spi_panel_data *ctrl_pdata, int event);
 #else
 static inline int is_spi_panel_continuous_splash_on(
 				struct mdss_panel_data *pdata)
