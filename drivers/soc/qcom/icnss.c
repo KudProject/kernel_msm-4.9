@@ -4851,6 +4851,9 @@ static int icnss_probe(struct platform_device *pdev)
 		return -EEXIST;
 	}
 
+	if (of_property_read_bool(pdev->dev.of_node, "qcom,icnss-disable"))
+		return -ENODEV;
+
 	icnss_pr_dbg("Platform driver probe\n");
 
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
