@@ -1406,6 +1406,7 @@ static void gsi_configure_ep(struct usb_ep *ep, struct usb_gsi_request *request)
 		reg = dwc3_readl(dwc->regs, DWC3_DALEPENA);
 		reg |= DWC3_DALEPENA_EP(dep->number);
 		dwc3_writel(dwc->regs, DWC3_DALEPENA, reg);
+		dep->trb_dequeue = 0;
 	}
 
 }
