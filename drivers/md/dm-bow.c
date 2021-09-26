@@ -8,6 +8,7 @@
 #include "dm-bufio.h"
 #include "dm-core.h"
 
+#include <linux/blkdev.h>
 #include <linux/crc32.h>
 #include <linux/module.h>
 
