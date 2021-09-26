@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2018,2020, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -1023,6 +1023,9 @@ void diag_cntl_process_read_data(struct diagfwd_info *p_info, void *buf,
 
 	while (read_len + header_len < len) {
 		ctrl_pkt = (struct diag_ctrl_pkt_header_t *)ptr;
+		if (((size_t)read_len + (size_t)ctrl_pkt->len +
+			header_len) > len)
+			return;
 		DIAG_LOG(DIAG_DEBUG_CONTROL,
 			"diag:peripheral: %d: pkt_id: %d\n",
 			p_info->peripheral, ctrl_pkt->pkt_id);

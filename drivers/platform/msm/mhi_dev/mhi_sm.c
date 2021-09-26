@@ -1,4 +1,4 @@
-/* Copyright (c) 2015-2019, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2015-2020, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -929,7 +929,8 @@ int mhi_dev_sm_init(struct mhi_dev *mhi_dev)
 
 	/*init debugfs*/
 	mhi_sm_debugfs_init();
-	mhi_sm_ctx->mhi_sm_wq = create_singlethread_workqueue("mhi_sm_wq");
+	mhi_sm_ctx->mhi_sm_wq = alloc_workqueue(
+				"mhi_sm_wq", WQ_HIGHPRI | WQ_UNBOUND, 1);
 	if (!mhi_sm_ctx->mhi_sm_wq) {
 		MHI_SM_ERR("Failed to create singlethread_workqueue: sm_wq\n");
 		res = -ENOMEM;
