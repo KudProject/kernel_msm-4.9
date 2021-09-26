@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2017-2019,2021, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -328,12 +328,13 @@ irqret:
 				       SE_DMA_RX_IRQ_CLR);
 		/* Ensure all writes are done before returning from ISR. */
 		wmb();
-		if ((dm_tx_st & TX_DMA_DONE) || (dm_rx_st & RX_DMA_DONE))
-			complete(&gi2c->xfer);
-
 	}
-	/* if this is err with done-bit not set, handle that thr' timeout. */
-	else if (m_stat & M_CMD_DONE_EN)
+
+	/* For some reason if DMA could not complete transfer, GENI must have
+	 * command executed. E.g. I2C NACK, hence consider CMD_DONE too.
+	 */
+	if ((m_stat & M_CMD_DONE_EN) ||
+		 (dm_tx_st & TX_DMA_DONE) || (dm_rx_st & RX_DMA_DONE))
 		complete(&gi2c->xfer);
 
 	return IRQ_HANDLED;
