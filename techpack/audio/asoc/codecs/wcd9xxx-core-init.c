@@ -1,4 +1,4 @@
-/* Copyright (c) 2017, 2020, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2017, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -26,8 +26,6 @@ static int __init wcd9xxx_core_init(void)
 	if (ret[0])
 		pr_err("%s: Failed init pinctrl drv: %d\n", __func__, ret[0]);
 
-//optimization for kai BEGIN
-#ifndef CONFIG_KAI_OPTIMIZATION
 	ret[1] = wcd9xxx_irq_drv_init();
 	if (ret[1])
 		pr_err("%s: Failed init irq drv: %d\n", __func__, ret[1]);
@@ -35,8 +33,6 @@ static int __init wcd9xxx_core_init(void)
 	ret[2] = wcd9xxx_init();
 	if (ret[2])
 		pr_err("%s: Failed wcd core drv: %d\n", __func__, ret[2]);
-#endif
-//optimization for kai END
 
 	for (i = 0; i < NUM_DRIVERS_REG_RET; i++) {
 		if (ret[i])
@@ -49,12 +45,8 @@ module_init(wcd9xxx_core_init);
 
 static void __exit wcd9xxx_core_exit(void)
 {
-//optimization for kai BEGIN
-#ifndef CONFIG_KAI_OPTIMIZATION
 	wcd9xxx_exit();
 	wcd9xxx_irq_drv_exit();
-#endif
-//optimization for kai END
 	msm_cdc_pinctrl_drv_exit();
 }
 module_exit(wcd9xxx_core_exit);

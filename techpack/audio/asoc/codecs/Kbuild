@@ -79,11 +79,6 @@ COMMON_INC :=	-I$(AUDIO_ROOT)/$(COMMON_DIR)
 
 ############ ASoC Codecs ############
 ifdef CONFIG_WCD9XXX_CODEC_CORE
-ifdef CONFIG_KAI_OPTIMIZATION
-	CORE_OBJS += wcd9xxx-core-init.o
-	CORE_OBJS += msm-cdc-pinctrl.o
-	CORE_OBJS += msm-cdc-supply.o
-else
 	CORE_OBJS += wcd9xxx-rst.o
 	CORE_OBJS += wcd9xxx-core-init.o
 	CORE_OBJS += wcd9xxx-core.o
@@ -97,19 +92,14 @@ else
 	CORE_OBJS += wcd934x/wcd934x-regmap.o
 	CORE_OBJS += wcd934x/wcd934x-tables.o
 endif
-endif
 
 ifdef CONFIG_SND_SOC_WCD9XXX_V2
-ifdef CONFIG_KAI_OPTIMIZATION
-	WCD9XXX_OBJS += wcdcal-hwdep.o
-else
 	WCD9XXX_OBJS += wcd9xxx-common-v2.o
 	WCD9XXX_OBJS += wcd9xxx-resmgr-v2.o
 	WCD9XXX_OBJS += wcdcal-hwdep.o
 	WCD9XXX_OBJS += wcd9xxx-soc-init.o
 	WCD9XXX_OBJS += wcd-dsp-utils.o
 	WCD9XXX_OBJS += wcd-dsp-mgr.o
-endif
 endif
 
 ifdef CONFIG_COMMON_CLK_QCOM
@@ -128,18 +118,13 @@ ifdef CONFIG_SND_SOC_WSA881X
 	WSA881X_OBJS += wsa881x.o
 	WSA881X_OBJS += wsa881x-tables.o
 	WSA881X_OBJS += wsa881x-regmap.o
-ifndef CONFIG_KAI_OPTIMIZATION
 	WSA881X_OBJS += wsa881x-temp-sensor.o
-endif
 endif
 
 ifdef CONFIG_SND_SOC_WSA881X_ANALOG
 	WSA881X_ANALOG_OBJS += wsa881x-analog.o
 	WSA881X_ANALOG_OBJS += wsa881x-tables-analog.o
 	WSA881X_ANALOG_OBJS += wsa881x-regmap-analog.o
-ifdef CONFIG_KAI_OPTIMIZATION
-	WSA881X_ANALOG_OBJS += wsa881x-temp-sensor.o
-endif
 endif
 
 ifdef CONFIG_SND_SOC_MSM_STUB
@@ -223,10 +208,8 @@ wcd_core_dlkm-y := $(CORE_OBJS)
 obj-$(CONFIG_SND_SOC_WCD9XXX_V2) += wcd9xxx_dlkm.o
 wcd9xxx_dlkm-y := $(WCD9XXX_OBJS)
 
-ifndef CONFIG_KAI_OPTIMIZATION
-	obj-$(CONFIG_SND_SOC_WCD9335) += wcd9335_dlkm.o
-	wcd9335_dlkm-y := $(WCD9335_OBJS)
-endif
+obj-$(CONFIG_SND_SOC_WCD9335) += wcd9335_dlkm.o
+wcd9335_dlkm-y := $(WCD9335_OBJS)
 
 obj-$(CONFIG_SND_SOC_WSA881X) += wsa881x_dlkm.o
 wsa881x_dlkm-y := $(WSA881X_OBJS)
