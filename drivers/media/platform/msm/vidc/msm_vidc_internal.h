@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2018, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2018, 2020 The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -233,6 +233,7 @@ struct msm_vidc_platform_data {
 	struct msm_vidc_efuse_data *efuse_data;
 	unsigned int efuse_data_length;
 	unsigned int sku_version;
+	bool enable_max_resolution;
 };
 
 struct msm_vidc_format {

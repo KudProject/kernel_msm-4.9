@@ -2669,7 +2669,12 @@ static irqreturn_t qpnp_lbc_usbin_valid_irq_handler(int irq, void *_chip)
 		else
 			extcon_set_cable_state_(chip->extcon,
 						EXTCON_USB, false);
-		power_supply_changed(chip->usb_psy);
+	}
+
+	power_supply_changed(chip->usb_psy);
+	if (chip->bat_if_base) {
+		pr_debug("power supply changed batt_psy\n");
+		power_supply_changed(chip->batt_psy);
 	}
 
 	return IRQ_HANDLED;

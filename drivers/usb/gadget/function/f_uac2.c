@@ -23,7 +23,7 @@
 #include "u_uac2.h"
 
 /* Keep everyone on toes */
-#define USB_XFERS	8
+#define USB_XFERS	32
 
 /*
  * The driver implements a simple UAC_2 topology.
@@ -1083,6 +1083,7 @@ static int set_ep_max_packet_size(const struct f_uac2_opts *uac2_opts,
 	int chmask, srate, ssize;
 	u16 max_size_bw, max_size_ep;
 	unsigned int factor;
+	u8 bInterval;
 
 	switch (speed) {
 	case USB_SPEED_FULL:
@@ -1111,6 +1112,26 @@ static int set_ep_max_packet_size(const struct f_uac2_opts *uac2_opts,
 
 	max_size_bw = num_channels(chmask) * ssize *
 		((srate / (factor / (1 << (ep_desc->bInterval - 1)))) + 1);
+
+	/* max_size_bw can vary based on sample rate, no. of channels &
+	 * sample size. If max_packet_size > ep_desc->wMaxPacketSize(i.e 1024),
+	 * reduce bInterval accordingly & recalculate max_packet_size. Else
+	 * required data rate may not fit per second.
+	 */
+	if (factor == 8000) {
+		if (max_size_bw > ep_desc->wMaxPacketSize) {
+			bInterval = ep_desc->bInterval -
+				(max_size_bw/ep_desc->wMaxPacketSize);
+			if ((bInterval < 1) || (bInterval > ep_desc->bInterval))
+				ep_desc->bInterval = 1;
+			else
+				ep_desc->bInterval = bInterval;
+
+			max_size_bw = num_channels(chmask) * ssize *
+				((srate /
+				(factor / (1 << (ep_desc->bInterval - 1)))) + 1);
+		}
+	}
 	ep_desc->wMaxPacketSize = cpu_to_le16(min_t(u16, max_size_bw,
 						    max_size_ep));
 
@@ -1220,6 +1241,10 @@ afunc_bind(struct usb_configuration *cfg, struct usb_function *fn)
 	uac2->p_prm.uac2 = uac2;
 	uac2->c_prm.uac2 = uac2;
 
+	hs_epin_desc.bInterval = 4;
+	hs_epout_desc.bInterval = 4;
+	hs_epin_desc.wMaxPacketSize = cpu_to_le16(1024);
+	hs_epout_desc.wMaxPacketSize = cpu_to_le16(1024);
 	/* Calculate wMaxPacketSize according to audio bandwidth */
 	ret = set_ep_max_packet_size(uac2_opts, &fs_epin_desc, USB_SPEED_FULL,
 				     true);

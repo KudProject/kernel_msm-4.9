@@ -1504,7 +1504,9 @@ int xhci_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_flags)
 		 * atomic context to this function, which may allocate memory.
 		 */
 		spin_lock_irqsave(&xhci->lock, flags);
-		if (xhci->xhc_state & XHCI_STATE_DYING)
+		if (xhci->xhc_state & XHCI_STATE_DYING ||
+				xhci_check_args(hcd, urb->dev, urb->ep,
+					true, true, __func__) <= 0)
 			goto dying;
 		ret = xhci_queue_ctrl_tx(xhci, GFP_ATOMIC, urb,
 				slot_id, ep_index);
@@ -1513,7 +1515,9 @@ int xhci_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_flags)
 		spin_unlock_irqrestore(&xhci->lock, flags);
 	} else if (usb_endpoint_xfer_bulk(&urb->ep->desc)) {
 		spin_lock_irqsave(&xhci->lock, flags);
-		if (xhci->xhc_state & XHCI_STATE_DYING)
+		if (xhci->xhc_state & XHCI_STATE_DYING ||
+				xhci_check_args(hcd, urb->dev, urb->ep,
+					true, true, __func__) <= 0)
 			goto dying;
 		if (xhci->devs[slot_id]->eps[ep_index].ep_state &
 				EP_GETTING_STREAMS) {
@@ -1535,7 +1539,9 @@ int xhci_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_flags)
 		spin_unlock_irqrestore(&xhci->lock, flags);
 	} else if (usb_endpoint_xfer_int(&urb->ep->desc)) {
 		spin_lock_irqsave(&xhci->lock, flags);
-		if (xhci->xhc_state & XHCI_STATE_DYING)
+		if (xhci->xhc_state & XHCI_STATE_DYING ||
+				xhci_check_args(hcd, urb->dev, urb->ep,
+					true, true, __func__) <= 0)
 			goto dying;
 		ret = xhci_queue_intr_tx(xhci, GFP_ATOMIC, urb,
 				slot_id, ep_index);
@@ -1544,7 +1550,9 @@ int xhci_urb_enqueue(struct usb_hcd *hcd, struct urb *urb, gfp_t mem_flags)
 		spin_unlock_irqrestore(&xhci->lock, flags);
 	} else {
 		spin_lock_irqsave(&xhci->lock, flags);
-		if (xhci->xhc_state & XHCI_STATE_DYING)
+		if (xhci->xhc_state & XHCI_STATE_DYING ||
+				xhci_check_args(hcd, urb->dev, urb->ep,
+					true, true, __func__) <= 0)
 			goto dying;
 		ret = xhci_queue_isoc_tx_prepare(xhci, GFP_ATOMIC, urb,
 				slot_id, ep_index);

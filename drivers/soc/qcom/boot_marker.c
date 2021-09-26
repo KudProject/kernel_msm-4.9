@@ -1,4 +1,4 @@
-/* Copyright (c) 2016, 2019, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2016, 2019-2020, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -41,6 +41,27 @@ struct boot_marker {
 static struct dentry *dent_bkpi, *dent_bkpi_status, *dent_mpm_timer;
 static struct boot_marker boot_marker_list;
 
+/*
+ * Caller is expected to hold the list spinlock.
+ */
+static void delete_boot_marker(const char *name)
+{
+	struct boot_marker *marker;
+	struct boot_marker *temp_addr;
+
+	list_for_each_entry_safe(marker, temp_addr, &boot_marker_list.list,
+			list) {
+		if (strnstr(marker->marker_name, name,
+			 strlen(marker->marker_name))) {
+			list_del(&marker->list);
+			kfree(marker);
+		}
+	}
+}
+
+/*
+ * Caller is expected to hold the list spinlock.
+ */
 static void _create_boot_marker(const char *name,
 		unsigned long long int timer_value)
 {
@@ -59,13 +80,39 @@ static void _create_boot_marker(const char *name,
 			sizeof(new_boot_marker->marker_name));
 	new_boot_marker->timer_value = timer_value;
 
-	spin_lock(&boot_marker_list.slock);
 	list_add_tail(&(new_boot_marker->list), &(boot_marker_list.list));
+}
+
+/*
+ * Update existing boot marker. Delete existing boot marker and add it
+ * to the tail of boot marker list (to keep timestamp in order). Used to
+ * avoid duplicate boot markers.
+ */
+void update_marker(const char *name)
+{
+	struct boot_marker *marker;
+	struct boot_marker *temp_addr;
+
+	unsigned long long timer_value = msm_timer_get_sclk_ticks();
+
+	spin_lock(&boot_marker_list.slock);
+	list_for_each_entry_safe(marker, temp_addr, &boot_marker_list.list,
+				list) {
+		if (strnstr(marker->marker_name, name,
+				strlen(marker->marker_name))) {
+			delete_boot_marker(marker->marker_name);
+			break;
+		}
+	}
+
+	_create_boot_marker(name, timer_value);
 	spin_unlock(&boot_marker_list.slock);
 }
+EXPORT_SYMBOL(update_marker);
 
 static void set_bootloader_stats(void)
 {
+	spin_lock(&boot_marker_list.slock);
 	_create_boot_marker("M - APPSBL Start - ",
 		readl_relaxed(&boot_stats->bootloader_start));
 	_create_boot_marker("M - APPSBL Display Init - ",
@@ -78,11 +125,14 @@ static void set_bootloader_stats(void)
 		readl_relaxed(&boot_stats->bootloader_checksum));
 	_create_boot_marker("M - APPSBL End - ",
 		readl_relaxed(&boot_stats->bootloader_end));
+	spin_unlock(&boot_marker_list.slock);
 }
 
 void place_marker(const char *name)
 {
+	spin_lock(&boot_marker_list.slock);
 	_create_boot_marker((char *) name, msm_timer_get_sclk_ticks());
+	spin_unlock(&boot_marker_list.slock);
 }
 EXPORT_SYMBOL(place_marker);
 

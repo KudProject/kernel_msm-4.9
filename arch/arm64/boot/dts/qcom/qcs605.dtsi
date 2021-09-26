@@ -79,6 +79,10 @@
 	qcom,rmnet-ipa {
 		status = "disabled";
 	};
+
+	msm_vidc0: qcom,vidc0 {
+		compatible = "qcom,msm-vidc", "qcom,qcs605-vidc";
+	};
 };
 
 &llcc {
@@ -430,4 +434,10 @@
 
 &kgsl_smmu {
 	/delete-property/qcom,deferred-regulator-disable-delay;
+};
+
+&usb0 {
+	dwc3@a600000 {
+		snps,usb3-u1u2-disable;
+	};
 };
