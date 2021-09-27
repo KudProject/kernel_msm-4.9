@@ -106,7 +106,8 @@
 		status = "disabled";
 	};
 
-	i2c_8: i2c@7AF8000 { /* BLSP2 QUP3 */
+/*
+	i2c_8: i2c@7AF8000 { // BLSP2 QUP3 //
 		compatible = "qcom,i2c-msm-v2";
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -131,6 +132,7 @@
 		dma-names = "tx", "rx";
 		status = "disabled";
 	};
+*/
 
 	gpio_keys {
 		compatible = "gpio-keys";
