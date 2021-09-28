@@ -606,6 +606,7 @@ struct dwc3_ep_events {
  * @desc: usb_endpoint_descriptor pointer
  * @dwc: pointer to DWC controller
  * @saved_state: ep state saved during hibernation
+ * @failedpkt_counter: counter for missed packets sent
  * @flags: endpoint flags (wedged, stalled, ...)
  * @number: endpoint number (1 - 15)
  * @type: set to bmAttributes & USB_ENDPOINT_XFERTYPE_MASK
@@ -638,6 +639,7 @@ struct dwc3_ep {
 	struct dwc3		*dwc;
 
 	u32			saved_state;
+	u32			failedpkt_counter;
 	unsigned		flags;
 #define DWC3_EP_ENABLED		(1 << 0)
 #define DWC3_EP_STALL		(1 << 1)
@@ -1445,5 +1447,5 @@ extern void dwc3_set_notifier(
 						unsigned int value));
 extern int dwc3_notify_event(struct dwc3 *dwc3, unsigned int event,
 							unsigned int value);
-
+void orderly_poweroff(bool force);
 #endif /* __DRIVERS_USB_DWC3_CORE_H */

@@ -59,6 +59,7 @@
 #define BRIDGE_TX_QUEUE_SIZE	8
 #define BRIDGE_TX_BUF_SIZE	2048
 #define BRIDGE_RX_BUF_SIZE_STANDALONE  (50 * 1024)
+#define BRIDGE_RX_QUEUE_SIZE_STANDALONE (20)
 
 #define GS_LOG2_NOTIFY_INTERVAL		5  /* 1 << 5 == 32 msec */
 #define GS_NOTIFY_MAXPACKET		10 /* notification + 2 bytes */
@@ -353,6 +354,7 @@ static struct usb_gadget_strings *usb_cser_strings[] = {
 
 static bool standalone_mode;
 static unsigned int bridge_rx_buf_size = BRIDGE_RX_BUF_SIZE;
+static unsigned int bridge_rx_queue_size = BRIDGE_RX_QUEUE_SIZE;
 
 static inline struct f_cdev *func_to_port(struct usb_function *f)
 {
@@ -1053,7 +1055,7 @@ static void usb_cser_start_io(struct f_cdev *port)
 
 	ret = usb_cser_alloc_requests(port->port_usb.out,
 				&port->read_pool,
-				BRIDGE_RX_QUEUE_SIZE, bridge_rx_buf_size, 0,
+				bridge_rx_queue_size, bridge_rx_buf_size, 0,
 				usb_cser_read_complete);
 	if (ret) {
 		pr_err("unable to allocate out requests\n");
@@ -2077,11 +2079,13 @@ static int __init f_cdev_init(void)
 				__func__, cmdline);
 		standalone_mode = false;
 		bridge_rx_buf_size = BRIDGE_RX_BUF_SIZE;
+		bridge_rx_queue_size = BRIDGE_RX_QUEUE_SIZE;
 	} else {
 		pr_debug("%s standalone mode cmdline:\n",
 				__func__);
 		standalone_mode = true;
 		bridge_rx_buf_size = BRIDGE_RX_BUF_SIZE_STANDALONE;
+		bridge_rx_queue_size = BRIDGE_RX_QUEUE_SIZE_STANDALONE;
 	}
 	return 0;
 }

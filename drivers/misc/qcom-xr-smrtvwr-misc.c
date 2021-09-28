@@ -29,7 +29,7 @@ struct qcom_xr_smrtvwr {
 static int qcom_xr_smrtvwr_probe(struct platform_device *pdev)
 {
 	int rc;
-	struct regulator *reg1, *reg2, *reg3;
+	struct regulator *reg1, *reg2, *reg3, *reg4;
 	int dp3p3_en_gpio = 142;
 	int wcd_en_gpio = 93;
 	int rgb_tck_oe_en_gpio = 108;
@@ -61,6 +61,16 @@ static int qcom_xr_smrtvwr_probe(struct platform_device *pdev)
 		if (rc < 0) {
 			pr_err("%s pm660_l7 failed\n", __func__);
 			goto reg3_fail;
+		}
+	}
+
+	reg4 = devm_regulator_get(&pdev->dev, "pm660_l15");
+	if (!IS_ERR(reg4)) {
+		regulator_set_load(reg4, 600000);
+		rc = regulator_enable(reg4);
+		if (rc < 0) {
+			pr_err("%s pm660_l15 failed\n", __func__);
+			goto reg4_fail;
 		}
 	}
 
@@ -112,6 +122,8 @@ gpiowcd_fail:
 	gpio_free(wcd_en_gpio);
 gpio3p3_fail:
 	gpio_free(dp3p3_en_gpio);
+reg4_fail:
+	devm_regulator_put(reg4);
 reg3_fail:
 	devm_regulator_put(reg3);
 reg2_fail:

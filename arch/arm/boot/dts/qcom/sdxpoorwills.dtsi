@@ -1,4 +1,4 @@
-/* Copyright (c) 2017-2020, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2017-2021, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -85,7 +85,7 @@
 			compatible = "shared-dma-pool";
 			reusable;
 			alignment = <0x400000>;
-			size = <0x400000>;
+			size = <0x700000>;
 			status = "disabled";
 		};
 
@@ -1397,6 +1397,8 @@
 		gdsc_emac-supply = <&gdsc_emac>;
 		mboxes = <&qmp_aop 0>;
 		mbox-names = "emac_aop";
+		ipa-dma-rx-desc-cnt = <256>;
+		ipa-dma-tx-desc-cnt = <256>;
 		io-macro-info {
 			io-macro-bypass-mode = <0>;
 			io-interface = "rgmii";

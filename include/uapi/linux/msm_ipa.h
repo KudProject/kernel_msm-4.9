@@ -1796,7 +1796,7 @@ struct ipa_ioc_nat_pdn_entry {
  */
 struct ipa_ioc_vlan_iface_info {
 	char name[IPA_RESOURCE_NAME_MAX];
-	uint8_t vlan_id;
+	uint16_t vlan_id;
 };
 
 /**
@@ -2102,12 +2102,14 @@ struct ipa_ioc_get_vlan_mode {
  * @vlan_id: vlan ID bridge is mapped to
  * @bridge_ipv4: bridge interface ipv4 address
  * @subnet_mask: bridge interface subnet mask
+ * @lan2lan_sw: indicate lan2lan traffic take sw-path or not
  */
 struct ipa_ioc_bridge_vlan_mapping_info {
 	char bridge_name[IPA_RESOURCE_NAME_MAX];
 	uint16_t vlan_id;
 	uint32_t bridge_ipv4;
 	uint32_t subnet_mask;
+	uint8_t lan2lan_sw;
 };
 
 /**

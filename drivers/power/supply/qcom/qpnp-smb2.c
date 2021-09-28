@@ -198,6 +198,7 @@ static int __audio_headset_drp_wait_ms = 100;
 module_param_named(
 	audio_headset_drp_wait_ms, __audio_headset_drp_wait_ms, int, 0600
 );
+static bool shutdown_when_usbabsent;
 
 #define MICRO_1P5A		1500000
 #define MICRO_P1A		100000
@@ -346,6 +347,9 @@ static int smb2_parse_dt(struct smb2 *chip)
 
 	chg->ufp_only_mode = of_property_read_bool(node,
 					"qcom,ufp-only-mode");
+
+	shutdown_when_usbabsent = of_property_read_bool(node,
+					"qcom,shutdown-enable");
 
 	return 0;
 }
@@ -2530,6 +2534,11 @@ static int smb2_probe(struct platform_device *pdev)
 		goto cleanup;
 	}
 	usb_present = val.intval;
+
+	if (shutdown_when_usbabsent && !usb_present) {
+		pr_err("ARGlass: no usb present, shutting down\n");
+		orderly_poweroff(true);
+	}
 
 	rc = smblib_get_prop_batt_present(chg, &val);
 	if (rc < 0) {

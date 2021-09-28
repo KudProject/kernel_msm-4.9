@@ -1,4 +1,4 @@
-/* Copyright (c) 2008-2019, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2008-2020, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -1839,9 +1839,9 @@ static int diagfwd_mux_write_done(unsigned char *buf, int len, int buf_ctxt,
 				  int ctxt)
 {
 	unsigned long flags;
-	int peripheral = -1;
-	int type = -1;
-	int num = -1;
+	int peripheral = -1, type = -1;
+	int num = -1, hdlc_ctxt = -1;
+	struct diag_apps_data_t *temp = NULL;
 
 	if (!buf || len < 0)
 		return -EINVAL;
@@ -1860,9 +1860,27 @@ static int diagfwd_mux_write_done(unsigned char *buf, int len, int buf_ctxt,
 			diag_ws_on_copy(DIAG_WS_MUX);
 		} else if (peripheral == APPS_DATA) {
 			spin_lock_irqsave(&driver->diagmem_lock, flags);
-			diagmem_free(driver, (unsigned char *)buf,
-				     POOL_TYPE_HDLC);
-			buf = NULL;
+			hdlc_ctxt = GET_HDLC_CTXT(buf_ctxt);
+			if ((hdlc_ctxt == HDLC_CTXT) && hdlc_data.allocated)
+				temp = &hdlc_data;
+			else if ((hdlc_ctxt == NON_HDLC_CTXT) &&
+				non_hdlc_data.allocated)
+				temp = &non_hdlc_data;
+			else
+				DIAG_LOG(DIAG_DEBUG_PERIPHERALS,
+				"No apps data buffer is allocated to be freed\n");
+			if (temp) {
+				DIAG_LOG(DIAG_DEBUG_PERIPHERALS,
+				"Freeing Apps data buffer after write done hdlc_ctxt: %d, hdlc.allocated: %d, non_hdlc.allocated: %d\n",
+				hdlc_ctxt,
+				hdlc_data.allocated, non_hdlc_data.allocated);
+				diagmem_free(driver, temp->buf, POOL_TYPE_HDLC);
+				temp->buf = NULL;
+				temp->len = 0;
+				temp->allocated = 0;
+				temp->flushed = 0;
+				wake_up_interruptible(&driver->hdlc_wait_q);
+			}
 			spin_unlock_irqrestore(&driver->diagmem_lock, flags);
 		} else {
 			pr_err_ratelimited("diag: Invalid peripheral %d in %s, type: %d\n",

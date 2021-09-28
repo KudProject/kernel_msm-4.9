@@ -535,6 +535,7 @@ int mdss_spi_panel_kickoff(struct mdss_panel_data *pdata,
 
 	rc = mdp3_spi_tx_pixel(tx_buf, ctrl_pdata->byte_per_frame);
 	mutex_unlock(&ctrl_pdata->spi_tx_mutex);
+	enable_spi_panel_te_irq(ctrl_pdata, false);
 
 	return rc;
 }
@@ -549,6 +550,7 @@ void mdss_spi_tx_fb_complete(void *ctx)
 				atomic_read(&ctrl_pdata->koff_cnt));
 		}
 		wake_up_all(&ctrl_pdata->tx_done_waitq);
+		mdss_spi_display_notify(ctrl_pdata, MDP_NOTIFY_FRAME_DONE);
 	}
 }
 #endif

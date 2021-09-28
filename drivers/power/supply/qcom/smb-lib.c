@@ -1,4 +1,4 @@
-/* Copyright (c) 2016-2019 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2016-2019, 2021 The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -4192,6 +4192,11 @@ static int typec_try_sink(struct smb_charger *chg)
 			goto try_sink_exit;
 		}
 
+		if (stat & TYPEC_VBUS_ERROR_STATUS_BIT) {
+			pr_err_ratelimited("vbus-error, vbus not detected - exit sink entry\n");
+			goto try_sink_exit;
+		}
+
 		/*
 		 * Ensure sink since drp may put us in source if other
 		 * side switches back to Rd
@@ -4277,8 +4282,6 @@ static void typec_sink_insertion(struct smb_charger *chg)
 
 static void typec_sink_removal(struct smb_charger *chg)
 {
-	smblib_set_charge_param(chg, &chg->param.freq_boost,
-			chg->chg_freq.freq_above_otg_threshold);
 	chg->boost_current_ua = 0;
 }
 
@@ -4446,6 +4449,7 @@ unlock:
 		smblib_err(chg, "Couldn't clear exit_sink_based_on_cc rc=%d\n",
 				rc);
 
+	smblib_set_opt_freq_buck(chg, chg->chg_freq.freq_removal);
 	typec_sink_removal(chg);
 	smblib_update_usb_type(chg);
 
@@ -4472,6 +4476,8 @@ static void smblib_handle_typec_insertion(struct smb_charger *chg)
 
 	if (chg->typec_status[3] & UFP_DFP_MODE_STATUS_BIT) {
 		typec_sink_insertion(chg);
+		smblib_set_charge_param(chg, &chg->param.freq_boost,
+			chg->chg_freq.freq_above_otg_threshold);
 	} else {
 		rc = smblib_request_dpdm(chg, true);
 		if (rc < 0)

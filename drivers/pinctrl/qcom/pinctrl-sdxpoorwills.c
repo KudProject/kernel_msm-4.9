@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018, 2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2017-2018, 2020-2021, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -1153,7 +1153,7 @@ static struct msm_gpio_mux_input sdxpoorwills_mux_in[] = {
 	{28, 54},
 	{29, 55},
 	{30, 56, 1},
-	{31, 57},
+	{31, 57, 1},
 	{32, 60},
 	{33, 61},
 	{34, 64},
@@ -1162,7 +1162,7 @@ static struct msm_gpio_mux_input sdxpoorwills_mux_in[] = {
 	{37, 71},
 	{38, 75},
 	{39, 76},
-	{40, 78},
+	{40, 78, 1},
 	{41, 79},
 	{42, 80},
 	{43, 82},

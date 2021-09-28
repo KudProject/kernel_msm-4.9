@@ -149,7 +149,6 @@
 
 	sdx_ext_ipc: qcom,sdx_ext_ipc {
 		compatible = "qcom,sdx-ext-ipc";
-		qcom,default-policy-nop;
 		qcom,ap2mdm-status-gpio = <&tlmm 95 0x00>;
 		qcom,mdm2ap-status-gpio = <&tlmm 36 0x00>;
 		qcom,mdm2ap-status2-gpio = <&tlmm 88 0x00>;
@@ -465,7 +464,6 @@
 	/delete-property/ vreg_rgmii-supply;
 	pinctrl-names = "default";
 	pinctrl-0 = <&vreg_rgmii_off_default>;
-	qcom,phy-reset-delay-msecs = <10>;
 };
 
 &vreg_rgmii_io_pads {

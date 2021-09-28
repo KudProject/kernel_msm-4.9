@@ -1,4 +1,4 @@
-/* Copyright (c) 2019-2020, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2019-2021, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -284,7 +284,7 @@
 
 &dsi_dual_xrsmrtvwr_jdi_video {
 	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
-	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
+	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_dcs";
 	qcom,mdss-dsi-bl-min-level = <1>;
 	qcom,mdss-dsi-bl-max-level = <4095>;
 	qcom,mdss-dsi-mode-sel-gpio-state = "dual_port";
@@ -344,7 +344,7 @@
 
 &dsi_sim_vid {
 	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
-	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_wled";
+	qcom,mdss-dsi-bl-pmic-control-type = "bl_ctrl_dcs";
 	qcom,platform-reset-gpio = <&tlmm 90 0>;
 };
 
@@ -435,8 +435,7 @@
 };
 
 &pm660l_wled {
-	status = "okay";
-	qcom,led-strings-list = [01 02];
+	status = "disabled";
 };
 
 &mdss_mdp {
@@ -531,4 +530,23 @@
 
 &pm660_pdphy {
 	qcom,sxr1130-sxr-dp-sink;
+};
+
+/*Adding delays so that display power settles down properly*/
+&mdss_dsi_phy0 {
+	qcom,phy-supply-entries {
+		qcom,phy-supply-entry@0 {
+			qcom,supply-pre-on-sleep = <40>;
+			qcom,supply-post-on-sleep = <40>;
+		};
+	};
+};
+
+&mdss_dsi_phy1 {
+	qcom,phy-supply-entries {
+		qcom,phy-supply-entry@0 {
+			qcom,supply-pre-on-sleep = <40>;
+			qcom,supply-post-on-sleep = <40>;
+		};
+	};
 };

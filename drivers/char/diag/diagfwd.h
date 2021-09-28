@@ -1,4 +1,4 @@
-/* Copyright (c) 2008-2017, 2019 The Linux Foundation. All rights reserved.
+/* Copyright (c) 2008-2017, 2019-2020, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -24,6 +24,9 @@
 #define GET_BUF_TYPE(d)		((d & 0x00FF00) >> 8)
 #define GET_BUF_NUM(n)		((n & 0x0000FF))
 #define GET_PD_CTXT(u)		((u & 0xFF000000) >> 24)
+
+#define SET_HDLC_CTXT(u)	((u & 0xFF) << 24)
+#define GET_HDLC_CTXT(u)	((u & 0xFF000000) >> 24)
 
 #define CHK_OVERFLOW(bufStart, start, end, length) \
 	((((bufStart) <= (start)) && ((end) - (start) >= (length))) ? 1 : 0)

@@ -1,4 +1,4 @@
-/* Copyright (c) 2012-2020, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2012-2021, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -357,6 +357,8 @@ static void dwc3_msm_notify_event(struct dwc3 *dwc, unsigned int event,
 						unsigned int value);
 static int dwc3_restart_usb_host_mode(struct notifier_block *nb,
 					unsigned long event, void *ptr);
+static bool shutdown_when_disconnected;
+static bool shutdown_from_sysfs;
 
 /**
  *
@@ -1405,6 +1407,7 @@ static void gsi_configure_ep(struct usb_ep *ep, struct usb_gsi_request *request)
 		reg = dwc3_readl(dwc->regs, DWC3_DALEPENA);
 		reg |= DWC3_DALEPENA_EP(dep->number);
 		dwc3_writel(dwc->regs, DWC3_DALEPENA, reg);
+		dep->trb_dequeue = 0;
 	}
 
 }
@@ -2968,10 +2971,16 @@ static void dwc3_resume_work(struct work_struct *w)
 			mdwc->typec_orientation = val.intval ?
 					ORIENTATION_CC2 : ORIENTATION_CC1;
 #ifdef CONFIG_TUSB1064_XR_MISC
-			tusb1064_usb_event(val.intval ? true : false);
+			/*
+			 * TUSB1064 handles the muxing, hence SSPHY only
+			 * needs to be configured to CC1
+			 */
+			if (tusb1064_usb_event(val.intval ? true : false))
+				mdwc->typec_orientation = ORIENTATION_CC1;
 #endif
 #ifdef CONFIG_VXR200_XR_MISC
-			vxr7200_usb_event(true);
+			if (!shutdown_from_sysfs)
+				vxr7200_usb_event(true);
 #endif
 
 		}
@@ -3089,7 +3098,7 @@ static irqreturn_t msm_dwc3_pwr_irq(int irq, void *data)
 
 	if (mdwc->drd_state == DRD_STATE_PERIPHERAL_SUSPEND) {
 		dev_info(mdwc->dev, "USB Resume start\n");
-		place_marker("M - USB device resume started");
+		update_marker("M - USB device resume started");
 	}
 
 	/*
@@ -3515,12 +3524,14 @@ static ssize_t mode_store(struct device *dev, struct device_attribute *attr,
 	if (sysfs_streq(buf, "peripheral")) {
 		mdwc->vbus_active = true;
 		mdwc->id_state = DWC3_ID_FLOAT;
+		shutdown_from_sysfs = false;
 	} else if (sysfs_streq(buf, "host")) {
 		mdwc->vbus_active = false;
 		mdwc->id_state = DWC3_ID_GROUND;
 	} else {
 		mdwc->vbus_active = false;
 		mdwc->id_state = DWC3_ID_FLOAT;
+		shutdown_from_sysfs = true;
 	}
 
 	dwc3_ext_event_notify(mdwc);
@@ -3856,6 +3867,9 @@ static int dwc3_msm_probe(struct platform_device *pdev)
 			goto uninit_iommu;
 		}
 	}
+
+	shutdown_when_disconnected = of_property_read_bool(node,
+					"qcom,shutdown-enable");
 
 	/* Assumes dwc3 is the first DT child of dwc3-msm */
 	dwc3_node = of_get_next_available_child(node, NULL);
@@ -4673,9 +4687,14 @@ static void dwc3_otg_sm_work(struct work_struct *w)
 			dwc3_msm_gadget_vbus_draw(mdwc, 0);
 			dev_dbg(mdwc->dev, "Cable disconnected\n");
 #ifdef CONFIG_VXR200_XR_MISC
-			vxr7200_usb_event(false);
+			if (!shutdown_from_sysfs)
+				vxr7200_usb_event(false);
 #endif
-
+			if (shutdown_when_disconnected &&
+					 !shutdown_from_sysfs) {
+				pr_err("ARGlass: USB discontd, powering off\n");
+				orderly_poweroff(true);
+			}
 		}
 		break;
 
@@ -4861,7 +4880,7 @@ static int dwc3_msm_pm_resume(struct device *dev)
 	if (atomic_read(&dwc->in_lpm) &&
 			mdwc->drd_state == DRD_STATE_PERIPHERAL_SUSPEND) {
 		dev_info(mdwc->dev, "USB Resume start\n");
-		place_marker("M - USB device resume started");
+		update_marker("M - USB device resume started");
 	}
 
 	/* kick in otg state machine */

@@ -113,6 +113,9 @@ SoCs:
 - SMVWR1130
   compatible = "qcom,sxr1130-smrtvwr"
 
+- ARGLASS1130
+  compatible = "qcom,sxr1130-arglass"
+
 - MSM8952
   compatible = "qcom,msm8952"
 
@@ -222,6 +225,9 @@ Generic board variants:
 
 - SMVWR device:
   compatible = "qcom,xr-smrtvwr"
+
+- ARGlass device:
+  compatible = "qcom,xr-arglass"
 
 - HDK device:
   compatible = "qcom,hdk"

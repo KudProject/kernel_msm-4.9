@@ -808,7 +808,7 @@ static void mhi_hwc_cb(void *priv, enum ipa_mhi_event_type event,
 
 		mhi_update_state_info(MHI_STATE_CONNECTED);
 		mhi_log(MHI_MSG_CRITICAL, "Device in M0 State\n");
-		place_marker("MHI - Device in M0 State\n");
+		update_marker("MHI - Device in M0 State\n");
 
 		if (!mhi_ctx->mhi_int)
 			ep_pcie_mask_irq_event(mhi_ctx->phandle,
@@ -1608,6 +1608,14 @@ static void mhi_update_state_info_all(enum mhi_ctrl_info info)
 
 	mhi_ctx->ctrl_info = info;
 	for (i = 0; i < MHI_MAX_SOFTWARE_CHANNELS; ++i) {
+		/*
+		 * Skip channel state info change
+		 * if channel is already in the desired state.
+		 */
+		if (channel_state_info[i].ctrl_info == info ||
+		    (info == MHI_STATE_DISCONNECTED &&
+		    channel_state_info[i].ctrl_info == MHI_STATE_CONFIGURED))
+			continue;
 		channel_state_info[i].ctrl_info = info;
 		/* Notify kernel clients */
 		mhi_dev_trigger_cb(i);

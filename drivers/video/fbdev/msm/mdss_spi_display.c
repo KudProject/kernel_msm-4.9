@@ -303,7 +303,6 @@ int mdss_spi_display_pre_commit(struct msm_fb_data_type *mfd,
 		mdss_spi_display_notify(ctrl_pdata, MDP_NOTIFY_FRAME_TIMEOUT);
 		return -EINVAL;
 	}
-	mdss_spi_display_notify(ctrl_pdata, MDP_NOTIFY_FRAME_DONE);
 
 	/* swap buffer */
 	temp_buf = ctrl_pdata->front_buf;

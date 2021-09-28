@@ -36,6 +36,10 @@
 #include "core.h"
 #include "gadget.h"
 #include "io.h"
+#ifdef CONFIG_VXR200_XR_MISC
+#include "../../misc/vxr7200.h"
+#endif
+
 
 static void dwc3_gadget_wakeup_interrupt(struct dwc3 *dwc, bool remote_wakeup);
 static int dwc3_gadget_wakeup_int(struct dwc3 *dwc);
@@ -229,6 +233,10 @@ int dwc3_gadget_resize_tx_fifos(struct dwc3 *dwc, struct dwc3_ep *dep)
 			|| usb_endpoint_xfer_isoc(dep->endpoint.desc))
 		mult = 3;
 
+	if ((dep->endpoint.maxburst > 6) &&
+			usb_endpoint_xfer_isoc(dep->endpoint.desc))
+		mult = 6;
+
 	tmp = ((max_packet + mdwidth) * mult) + mdwidth;
 	fifo_size = DIV_ROUND_UP(tmp, mdwidth);
 	dep->fifo_depth = fifo_size;
@@ -287,6 +295,17 @@ void dwc3_gadget_giveback(struct dwc3_ep *dep, struct dwc3_request *req,
 	}
 
 	trace_dwc3_gadget_giveback(req);
+
+	if (usb_endpoint_xfer_isoc(dep->endpoint.desc)) {
+		if (list_empty(&dep->started_list)) {
+			dep->flags |= DWC3_EP_PENDING_REQUEST;
+			dbg_event(dep->number, "STARTEDLISTEMPTY", 0);
+		}
+
+		dbg_log_string("%s(%d): Give back req %pK len(%d) actual(%d))",
+			dep->name, dep->number, &req->request,
+			req->request.length, req->request.actual);
+	}
 
 	spin_unlock(&dwc->lock);
 	usb_gadget_giveback_request(&dep->endpoint, &req->request);
@@ -901,6 +920,8 @@ static int dwc3_gadget_ep_disable(struct usb_ep *ep)
 	spin_lock_irqsave(&dwc->lock, flags);
 	ret = __dwc3_gadget_ep_disable(dep);
 	dbg_event(dep->number, "DISABLE", ret);
+	dbg_event(dep->number, "DISABLEFAILPKT", dep->failedpkt_counter);
+	dep->failedpkt_counter = 0;
 	spin_unlock_irqrestore(&dwc->lock, flags);
 
 	return ret;
@@ -1145,12 +1166,18 @@ static void dwc3_prepare_one_trb_linear(struct dwc3_ep *dep,
 {
 	unsigned int	length;
 	dma_addr_t	dma;
+	struct dwc3	*dwc = dep->dwc;
 
 	dma = req->request.dma;
 	length = req->request.length;
 
 	dwc3_prepare_one_trb(dep, req, dma, length,
 			false, 0);
+
+	if (usb_endpoint_xfer_isoc(dep->endpoint.desc))
+		dbg_log_string("%s(%d): req queue %pK len(%d))",
+			dep->name, dep->number,
+			&req->request, req->request.length);
 }
 
 /*
@@ -2626,6 +2653,7 @@ static int __dwc3_cleanup_done_trbs(struct dwc3 *dwc, struct dwc3_ep *dep,
 				 */
 				dep->flags |= DWC3_EP_MISSED_ISOC;
 				dbg_event(dep->number, "MISSED ISOC", status);
+				dep->failedpkt_counter++;
 			} else {
 				dev_err(dwc->dev, "incomplete IN transfer %s\n",
 						dep->name);
@@ -3572,6 +3600,9 @@ static void dwc3_gadget_interrupt(struct dwc3 *dwc,
 	case DWC3_DEVICE_EVENT_DISCONNECT:
 		dwc3_gadget_disconnect_interrupt(dwc);
 		dwc->dbg_gadget_events.disconnect++;
+#ifdef CONFIG_VXR200_XR_MISC
+		vxr7200_usb_event(false);
+#endif
 		break;
 	case DWC3_DEVICE_EVENT_RESET:
 		dwc3_gadget_reset_interrupt(dwc);
@@ -3580,6 +3611,9 @@ static void dwc3_gadget_interrupt(struct dwc3 *dwc,
 	case DWC3_DEVICE_EVENT_CONNECT_DONE:
 		dwc3_gadget_conndone_interrupt(dwc);
 		dwc->dbg_gadget_events.connect++;
+#ifdef CONFIG_VXR200_XR_MISC
+		vxr7200_usb_event(true);
+#endif
 		break;
 	case DWC3_DEVICE_EVENT_WAKEUP:
 		dwc3_gadget_wakeup_interrupt(dwc, false);
