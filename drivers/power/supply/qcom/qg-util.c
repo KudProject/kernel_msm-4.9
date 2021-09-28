@@ -329,7 +329,6 @@ int qg_get_battery_temp(struct qpnp_qg *chip, int *temp)
 			result.physical, result.measurement);
 
 	*temp = (int)result.physical;
-	*temp = 250;
 
 	return rc;
 }

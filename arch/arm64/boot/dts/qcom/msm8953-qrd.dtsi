@@ -95,18 +95,20 @@
 	};
 };
 
+/*
 &pmi632_gpios {
 	pmi632_gpio1 {
-		/* Disable GPIO1 for h/w base mitigation */
+		// Disable GPIO1 for h/w base mitigation //
 		pmi632_gpio1_default: pmi632_gpio1_default {
 			pins = "gpio1";
-			function = "normal"; /* normal output */
-			power-source = <0>; /* VIN0 */
-			output-high; /* digital output, no invert */
-			input-disable; /* prevent GPIO from being set to DIO */
+			function = "normal"; // normal output //
+			power-source = <0>; // VIN0 //
+			output-high; // digital output, no invert //
+			input-disable; // prevent GPIO from being set to DIO //
 		};
 	};
 };
+*/
 
 &i2c_5 { /* BLSP2 QUP1 (NFC) */
 	#address-cells = <1>;
@@ -345,6 +347,7 @@
 			0d 01 00];
 		sn65dsi84,off-command = [0d 00 00];
 	    };
+/*
 		mcp4725@60 {
 			compatible = "mcp4725";
 			pinctrl-names = "default"; //¡ø because of the default SW will set the config as "gpio16_dig_out_default" when init.
@@ -353,6 +356,7 @@
 			reg = <0x60>;
 			vcc_i2c-supply = <&pm8953_l5>;
 	    };
+*/
     };
 
 &sdhc_1 {
