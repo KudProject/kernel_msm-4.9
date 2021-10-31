@@ -14,11 +14,12 @@
 /dts-v1/;
 
 #include "apq8053.dtsi"
-#include "sdm450-pmi632.dtsi"
+#include "pmi8950.dtsi"
+#include "msm8953-pmi8950.dtsi"
 
 / {
-	model = "Qualcomm Technologies, Inc. APQ8053 + PMI632 SOC";
+	model = "Qualcomm Technologies, Inc. APQ8053 + PMI8950 SOC";
 	compatible = "qcom,apq8053";
-	qcom,pmic-id = <0x010016 0x25 0x0 0x0>;
-	qcom,pmic-name = "PMI632";
+	qcom,pmic-id = <0x010016 0x010011 0x0 0x0>;
+	qcom,pmic-name = "PMI8950";
 };
