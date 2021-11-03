@@ -20,9 +20,9 @@
 #include <dt-bindings/interrupt-controller/arm-gic.h>
 
 #include "sdm670-cdp.dtsi"
-#include "pm660a.dtsi"
 #include "sdm670-int-cdc-aqt.dtsi"
 #include "sdm670-int-cdc-aqt-overlay.dtsi"
+#include "pm660a.dtsi"
 
 / {
 	model = "Qualcomm Technologies, Inc. SDM710 PM660 + PM660A AQT CDP";
