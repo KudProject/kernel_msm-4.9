@@ -8,7 +8,7 @@ else ifeq ($(CONFIG_ARCH_SDM670),y)
   include $(srctree)/techpack/audio/config/sdm710auto.conf
   export $(shell sed 's/=.*//' $(srctree)/techpack/audio/config/sdm710auto.conf)
 else
-  # msm8953 platform
+  # msm8917/msm8937/msm8953 platforms
   ifeq ($(CONFIG_ARCH_SDM632),y)
     audioconf := -include $(srctree)/techpack/audio/config/sdm450autoconf.h
     include $(srctree)/techpack/audio/config/sdm450auto.conf
@@ -41,13 +41,12 @@ else
     audioconf := -include $(srctree)/techpack/audio/config/sdm450autoconf.h
     include $(srctree)/techpack/audio/config/sdm450auto.conf
     export $(shell sed 's/=.*//' $(srctree)/techpack/audio/config/sdm450auto.conf)
+  else ifeq ($(CONFIG_ARCH_QM215),y)
+    audioconf := -include $(srctree)/techpack/audio/config/sdm450autoconf.h
+    include $(srctree)/techpack/audio/config/sdm450auto.conf
+    export $(shell sed 's/=.*//' $(srctree)/techpack/audio/config/sdm450auto.conf)
   else
-    # msm8909 platform
-    ifeq ($(CONFIG_ARCH_QM215),y)
-      audioconf := -include $(srctree)/techpack/audio/config/msm8909autoconf.h
-      include $(srctree)/techpack/audio/config/msm8909auto.conf
-      export $(shell sed 's/=.*//' $(srctree)/techpack/audio/config/msm8909auto.conf)
-    else ifeq ($(CONFIG_ARCH_MSM8909),y)
+    ifeq ($(CONFIG_ARCH_MSM8909),y)
       audioconf := -include $(srctree)/techpack/audio/config/msm8909autoconf.h
       include $(srctree)/techpack/audio/config/msm8909auto.conf
       export $(shell sed 's/=.*//' $(srctree)/techpack/audio/config/msm8909auto.conf)
