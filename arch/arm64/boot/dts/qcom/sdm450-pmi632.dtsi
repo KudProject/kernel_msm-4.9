@@ -15,6 +15,7 @@
 
 &spmi_bus {
 	/delete-node/ qcom,pmi8950@2;
+	/delete-node/ qcom,pmi8950@3;
 };
 
 &pm8953_typec {
@@ -24,10 +25,6 @@
 &pmi632_pon {
 	qcom,ps-hold-hard-reset-disable;
 	qcom,ps-hold-shutdown-disable;
-};
-
-&usb5807 {
-	extcon = <&pmi632_charger>;
 };
 
 &usb3 {
@@ -82,20 +79,6 @@
 		output-high;
 		};
 	};
-
-
-	pm8953_bl_pwm {
-		pm8953_bl_pwm_default: pm8953_bl_pwm_default {
-			pins = "gpio8"; /* GPIO 8  */
-			function = "dtest2"; /* Special Function 2  */
-			bias-disable;
-			power-source = <0>;
-			output-low; /* digital output, no invert  */
-			qcom,drive-strength = <3>;
-			drive-push-pull; /* CMOS */
-		};
-	};
-
 };
 
 &pm8953_pwm {
