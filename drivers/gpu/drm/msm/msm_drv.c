@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018, 2020 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2016-2018, 2020-2021, The Linux Foundation. All rights reserved.
  * Copyright (C) 2013 Red Hat
  * Author: Rob Clark <robdclark@gmail.com>
  *
@@ -279,6 +279,7 @@ static int msm_drm_uninit(struct device *dev)
 	drm_vblank_cleanup(ddev);
 
 	if (priv->registered) {
+		drm_client_dev_unregister(ddev);
 		drm_dev_unregister(ddev);
 		priv->registered = false;
 	}
