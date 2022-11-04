@@ -57,7 +57,7 @@
 		other_ext_mem: other_ext_region@0 {
 			compatible = "removed-dma-pool";
 			no-map;
-			reg = <0x0 0x85b00000 0x0 0xd00000>;
+			reg = <0x0 0x85c00000 0x0 0xc00000>;
 		};
 
 		modem_mem: modem_region@0 {
@@ -1538,9 +1538,9 @@
 		status = "disabled";
 	};
 
-	qcom_seecom: qseecom@85b00000 {
+	qcom_seecom: qseecom@85c00000 {
 		compatible = "qcom,qseecom";
-		reg = <0x85b00000 0x800000>;
+		reg = <0x85C00000 0x700000>;
 		reg-names = "secapp-region";
 		qcom,hlos-num-ce-hw-instances = <1>;
 		qcom,hlos-ce-hw-instance = <0>;

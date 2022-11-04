@@ -29,7 +29,7 @@ static struct v4l2_file_operations msm_sensor_v4l2_subdev_fops;
 static int32_t msm_sensor_driver_platform_probe(struct platform_device *pdev);
 
 /* Static declaration */
-static struct msm_sensor_ctrl_t *g_sctrl[MAX_CAMERAS];
+struct msm_sensor_ctrl_t *g_sctrl[MAX_CAMERAS];
 
 static int msm_sensor_platform_remove(struct platform_device *pdev)
 {
